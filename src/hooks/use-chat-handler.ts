@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
@@ -92,7 +91,7 @@ export function useChatHandler(currentLanguage: string) {
 
     try {
       const currentChat = getActiveChat();
-      const conversationHistory = currentChat ? currentChat.messages.filter(m => m.id !== aiThinkingMessageId).slice(-10) : []; // Increased history for better context
+      const conversationHistory = currentChat ? currentChat.messages.filter(m => m.id !== aiThinkingMessageId).slice(-10) : []; 
       const userQueryContext = conversationHistory.map(m => `${m.sender}: ${m.text || (m.file ? `[file: ${m.file.name}]` : "[empty message]")}`).join('\n');
 
       const interpretation: InterpretUserQueryOutput = await interpretUserQuery({ 
@@ -106,41 +105,91 @@ export function useChatHandler(currentLanguage: string) {
       let analysisResult: Message['analyzedInfo'] | undefined = undefined;
       let aiResponseFile: FileAttachment | undefined = undefined;
 
-      const lowerCaseIntent = interpretation.intent.toLowerCase();
-      const imageKeywords = ["generate image", "create image", "draw picture", "make picture", "generate a photo", "create a photo"];
-      const isImageRequest = imageKeywords.some(keyword => lowerCaseIntent.includes(keyword));
-      
-      if (isImageRequest && !attachedFile) {
-        let imagePrompt = query;
-        const promptExtractionKeywords = ["generate image of", "create an image of", "draw a picture of", "make a picture of", "generate a photo of", "create a photo of", ...imageKeywords];
-        for (const keyword of promptExtractionKeywords) {
-            if (query.toLowerCase().startsWith(keyword)) {
-                imagePrompt = query.substring(keyword.length).trim();
-                break;
-            }
-        }
-         // If initial stripping didn't work well, try with intent
-        if (imagePrompt === query && interpretation.intent) {
-            for (const keyword of promptExtractionKeywords) {
-                if (interpretation.intent.toLowerCase().startsWith(keyword)) {
-                    imagePrompt = interpretation.intent.substring(keyword.length).trim();
-                    break;
-                }
-            }
-        }
-        if (!imagePrompt || imagePrompt === query) imagePrompt = "A vibrant and interesting image"; // Default prompt
+      const lowerCaseQuery = query.toLowerCase();
+      let isImageRequest = false;
+      let imagePrompt = "";
 
-        const { imageDataUri, revisedPrompt } = await generateImage({ prompt: imagePrompt });
+      const specificImageKeywords = [
+          "generate image of", "create image of", "draw picture of", "make picture of", 
+          "generate photo of", "create photo of", "show me an image of", "imagine a picture of",
+          "generate an image of", "create an image of"
+      ];
+      const generalImageKeywords = [
+          "generate image", "create image", "draw picture", "make picture", 
+          "generate photo", "create photo"
+      ];
+
+      for (const keyword of specificImageKeywords) {
+          const keywordIndex = lowerCaseQuery.indexOf(keyword);
+          if (keywordIndex !== -1) {
+              isImageRequest = true;
+              imagePrompt = query.substring(keywordIndex + keyword.length).trim();
+              break;
+          }
+      }
+
+      if (!isImageRequest) {
+          for (const keyword of generalImageKeywords) {
+              if (lowerCaseQuery.includes(keyword)) {
+                  isImageRequest = true;
+                  // Attempt to extract a subject if the keyword is general
+                  imagePrompt = query.toLowerCase().replace(keyword, "").trim();
+                  // Remove common leading/trailing punctuation that might result from simple replace
+                  if (imagePrompt.startsWith(",")) imagePrompt = imagePrompt.substring(1).trim();
+                  if (imagePrompt.endsWith(",")) imagePrompt = imagePrompt.slice(0, -1).trim();
+                  break;
+              }
+          }
+      }
+      
+      if (isImageRequest && (!imagePrompt || imagePrompt.length < 3)) { // If detected but prompt is weak
+          if (interpretation.intent) {
+              let tempIntentPrompt = interpretation.intent;
+              for (const keyword of [...specificImageKeywords, ...generalImageKeywords]) {
+                  const keywordIndex = tempIntentPrompt.toLowerCase().indexOf(keyword);
+                  if (keywordIndex !== -1) {
+                      tempIntentPrompt = tempIntentPrompt.substring(keywordIndex + keyword.length).trim();
+                      break; 
+                  }
+              }
+              if (tempIntentPrompt.length >= 3) {
+                  imagePrompt = tempIntentPrompt;
+              }
+          }
+      }
+      
+      if (isImageRequest && (!imagePrompt || imagePrompt.length < 3)) {
+          imagePrompt = "A vibrant and interesting abstract design"; // Fallback default prompt
+      }
+      
+      console.log("Image generation debug info:", { 
+        originalQuery: query, 
+        lowerCaseQuery, 
+        isImageRequest, 
+        extractedImagePrompt: imagePrompt, 
+        interpretedIntent: interpretation.intent 
+      });
+
+      if (isImageRequest && !attachedFile) {
+        console.log(`Attempting to generate image with prompt: "${imagePrompt}"`);
+        try {
+            const { imageDataUri, revisedPrompt } = await generateImage({ prompt: imagePrompt });
+            
+            const imageName = imagePrompt.substring(0, 30).replace(/[^a-zA-Z0-9_]/g, '_').replace(/_{2,}/g, '_') + `_${Date.now()}.png`;
+            aiResponseFile = {
+                name: imageName,
+                type: 'image/png',
+                size: imageDataUri.length, 
+                dataUri: imageDataUri,
+            };
+            aiResponseText = revisedPrompt || `Here's the image I generated for "${imagePrompt}":`;
+            updateMessageInChat(activeChatId, aiThinkingMessageId, { text: aiResponseText, isLoading: false, file: aiResponseFile });
         
-        const imageName = imagePrompt.substring(0, 20).replace(/\s/g, '_').replace(/[^\w-]/g, '') + `_${Date.now()}.png`;
-        aiResponseFile = {
-            name: imageName,
-            type: 'image/png', // Can be parsed from data URI if more accuracy needed
-            size: imageDataUri.length, 
-            dataUri: imageDataUri,
-        };
-        aiResponseText = revisedPrompt || `Here's the image you requested for: "${imagePrompt}"`;
-        updateMessageInChat(activeChatId, aiThinkingMessageId, { text: aiResponseText, isLoading: false, file: aiResponseFile });
+        } catch (imgError: any) {
+            console.error('Image generation failed in useChatHandler:', imgError);
+            aiResponseText = `I tried to generate an image for "${imagePrompt}", but something went wrong. Error: ${imgError.message || 'Unknown image generation error'}`;
+            updateMessageInChat(activeChatId, aiThinkingMessageId, { text: aiResponseText, isLoading: false, isError: true });
+        }
       
       } else if (attachedFile) {
         const { answer } = await importAndProcessFile({ fileDataUri: attachedFile.dataUri, query: interpretation.intent || query });
@@ -204,24 +253,23 @@ export function useChatHandler(currentLanguage: string) {
       };
 
       mediaRecorderRef.current.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' }); // Common type, adjust if needed
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' }); 
         const reader = new FileReader();
         reader.readAsDataURL(audioBlob);
         reader.onloadend = async () => {
           const audioDataUri = reader.result as string;
           setIsLoading(true); 
           try {
-            // Use languageHint for better transcription accuracy
             const { transcribedText } = await understandVoiceInput({ audioDataUri, languageHint: currentLanguage });
             await handleSendMessageCallback(transcribedText, currentFile || undefined);
           } catch (e) {
             console.error('Error transcribing voice:', e);
-            if(activeChatId) { // Check activeChatId again before adding message
+            if(activeChatId) { 
               addMessageToChat(activeChatId, {
                 sender: 'ai',
                 text: 'Sorry, I could not understand your voice.',
                 isError: true,
-                isLoading: false, // Ensure isLoading is set to false on error
+                isLoading: false, 
               });
             }
             toast({ title: 'Voice Input Error', description: 'Could not transcribe audio.', variant: 'destructive' });
@@ -229,7 +277,7 @@ export function useChatHandler(currentLanguage: string) {
             setIsLoading(false);
           }
         };
-        stream.getTracks().forEach(track => track.stop()); // Stop media stream tracks
+        stream.getTracks().forEach(track => track.stop()); 
       };
 
       mediaRecorderRef.current.start();
@@ -257,7 +305,6 @@ export function useChatHandler(currentLanguage: string) {
       };
       reader.readAsDataURL(file);
     }
-    // Reset file input to allow selecting the same file again
     event.target.value = '';
   }, [toast]);
   
@@ -289,7 +336,6 @@ export function useChatHandler(currentLanguage: string) {
       const messageIndex = currentChat.messages.findIndex(m => m.id === messageId);
       let userQueryContext = "No preceding user message found.";
       if (messageIndex > 0) {
-        // Find the last user message before this AI message
         for (let i = messageIndex -1; i >=0; i--) {
           if (currentChat.messages[i].sender === 'user') {
             userQueryContext = currentChat.messages[i].text || (currentChat.messages[i].file ? `File: ${currentChat.messages[i].file?.name}` : "User initiated action");
@@ -309,7 +355,7 @@ export function useChatHandler(currentLanguage: string) {
       toast({ title: 'Feedback Received', description: feedbackResponse.message });
     } catch (error) {
       console.error('Error submitting feedback:', error);
-      updateMessageInChat(activeChatId, messageId, { feedback: messageToUpdate.feedback, correction: messageToUpdate.correction }); // Revert to original if error
+      updateMessageInChat(activeChatId, messageId, { feedback: messageToUpdate.feedback, correction: messageToUpdate.correction }); 
       toast({ title: 'Feedback Error', description: 'Could not submit feedback.', variant: 'destructive' });
     }
   }, [activeChatId, updateMessageInChat, toast, getActiveChat]);
@@ -330,4 +376,3 @@ export function useChatHandler(currentLanguage: string) {
     handleFeedback,
   };
 }
-
