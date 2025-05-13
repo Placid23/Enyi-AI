@@ -33,11 +33,7 @@ const AppHeader = ({ currentLanguage, onLanguageChange }: AppHeaderProps) => {
   return (
     <header className="bg-card text-card-foreground shadow-md sticky top-0 z-50 border-b">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        <Link href="/" className="flex items-center space-x-2 group">
-          <BrainCircuit className="h-8 w-8 text-primary group-hover:text-accent transition-colors" aria-label="AetherAssist Logo" />
-          <h1 className="text-2xl font-bold tracking-tight text-primary group-hover:text-accent transition-colors">AetherAssist</h1>
-        </Link>
-        <nav className="space-x-2 flex items-center">
+        <div className="flex items-center space-x-4"> {/* Wrapper for left-aligned items */}
           <Select value={currentLanguage} onValueChange={onLanguageChange}>
             <SelectTrigger 
               className="w-auto min-w-[120px] text-sm h-9 px-3 border-border hover:bg-accent/10 focus:ring-accent" 
@@ -57,6 +53,13 @@ const AppHeader = ({ currentLanguage, onLanguageChange }: AppHeaderProps) => {
             </SelectContent>
           </Select>
 
+          <Link href="/" className="flex items-center space-x-2 group">
+            <BrainCircuit className="h-8 w-8 text-primary group-hover:text-accent transition-colors" aria-label="AetherAssist Logo" />
+            <h1 className="text-2xl font-bold tracking-tight text-primary group-hover:text-accent transition-colors">AetherAssist</h1>
+          </Link>
+        </div>
+        
+        <nav className="space-x-2 flex items-center">
           <Button
             variant="ghost"
             size="icon"
