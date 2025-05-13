@@ -37,22 +37,27 @@ const speakResponseFlow = ai.defineFlow(
     outputSchema: SpeakResponseOutputSchema,
   },
   async input => {
-    const {text: textToSpeak, languageCode} = input; // Renamed input.text to textToSpeak to avoid conflict
+    const {text: textToSpeak, languageCode} = input; 
 
-    // Use Genkit's generate functionality with a model capable of audio output.
-    // The language of the generated audio is primarily determined by the language of the input 'textToSpeak'.
     // The 'languageCode' parameter is included in the schema for completeness and potential future use
     // with models or configurations that explicitly use it.
-    const {media, text: responseText} = await ai.generate({ // responseText is for the text part of the response
-      model: 'googleai/gemini-2.0-flash', // Changed model to project default
+    // The current error "Model does not support the requested response modalities: audio,text"
+    // for 'googleai/gemini-2.0-flash' suggests changing the modalities.
+    // We will request only 'AUDIO'.
+    const generationResult = await ai.generate({ 
+      model: 'googleai/gemini-2.0-flash', 
       prompt: textToSpeak, 
       config: {
-        responseModalities: ['AUDIO', 'TEXT'], // Ensure TEXT is also requested if model needs it
+        responseModalities: ['AUDIO'], // Changed from ['AUDIO', 'TEXT']
         // If the specific model/plugin supported an explicit language parameter for audio generation,
         // it would be configured here, potentially using `languageCode`.
         // e.g., ...(languageCode && { ttsLanguage: languageCode })
       },
     });
+
+    const media = generationResult.media;
+    // responseText will likely be undefined if 'TEXT' is not in responseModalities.
+    const responseText = generationResult.text; 
 
     const audioOutputUrl = media?.url;
 
