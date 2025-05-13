@@ -9,5 +9,6 @@ import '@/ai/flows/understand-voice-input.ts';
 import '@/ai/flows/interpret-user-query.ts';
 import '@/ai/flows/analyze-information.ts';
 import '@/ai/flows/analyze-facial-sentiment.ts'; 
-import '@/ai/flows/process-user-feedback.ts'; // Added new flow
+import '@/ai/flows/process-user-feedback.ts'; 
+import '@/ai/flows/generate-image-flow.ts'; // Added new flow for image generation
 
