@@ -34,15 +34,17 @@ const prompt = ai.definePrompt({
   name: 'interpretUserQueryPrompt',
   input: {schema: InterpretUserQueryInputSchema},
   output: {schema: InterpretUserQueryOutputSchema},
-  prompt: `You are an AI assistant that interprets user queries to understand their intent and context.
+  prompt: `You are a highly proficient AI assistant specializing in deep query analysis. Your task is to meticulously interpret user queries to understand their core intent, underlying assumptions, and contextual nuances.
 
-  Your job is to determine the intent of the query, whether it requires additional context, and if so, what context is relevant.
+  Your job is to:
+  1. Determine the primary intent of the query. Be specific (e.g., "seeking factual information about X," "requesting a creative story about Y," "asking for a step-by-step explanation of Z," "expressing an opinion on A").
+  2. Identify if the query implies a need for additional, broader context beyond the immediate conversation (e.g., historical facts, scientific data, definitions).
+  3. If broader context is needed, specify what kind of information would be most relevant to fully address the query.
 
   Query: {{{query}}}
-  Context: {{{context}}}
+  {{#if context}}Conversation Context (use for disambiguation if needed): {{{context}}}{{/if}}
 
-  Analyze the query and the context (if any) and provide the following information:
-
+  Analyze the query (and conversation context, if provided) and provide the following information:
   - intent: A brief description of the user's intent.
   - relevantContext: If the query requires additional context, describe what context would be relevant. Otherwise, leave blank.
   - requiresContext: true if the query requires additional context, false otherwise.
@@ -60,3 +62,4 @@ const interpretUserQueryFlow = ai.defineFlow(
     return output!;
   }
 );
+

@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -36,15 +37,17 @@ const prompt = ai.definePrompt({
   name: 'analyzeInformationPrompt',
   input: {schema: AnalyzeInformationInputSchema},
   output: {schema: AnalyzeInformationOutputSchema},
-  prompt: `You are an expert information analyst. Your task is to analyze complex information and provide a concise summary, key insights, and a confidence level for your analysis.
+  prompt: `You are an expert information analyst and critical thinker. Your task is to meticulously analyze complex information, break it down, and extract deep, non-obvious insights.
+Focus on providing a nuanced understanding of the information, not just a surface-level summary.
 
   Information: {{{information}}}
 
   Query: {{{query}}}
 
-  Summary:
-  Key Insights:
-  Confidence Level (0-1):`,
+  Provide the following:
+  Summary: A concise, yet comprehensive summary of the analyzed information, specifically addressing the nuances related to the query.
+  Key Insights: Articulate several key insights derived from the analysis. These should go beyond the obvious and highlight significant patterns, implications, or connections within the data relevant to the query.
+  Confidence Level (0-1): Your confidence in the accuracy and completeness of your analysis based on the provided information. Be honest about any ambiguities or limitations.`,
 });
 
 const analyzeInformationFlow = ai.defineFlow(
@@ -58,3 +61,4 @@ const analyzeInformationFlow = ai.defineFlow(
     return output!;
   }
 );
+
