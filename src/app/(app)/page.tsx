@@ -35,13 +35,13 @@ function EnyiPageContent() {
   // const AppContext = React.createContext<{ currentLanguage: string } | null>(null); 
 
   return (
-    <div className="flex-grow flex flex-col overflow-hidden container mx-auto max-w-5xl w-full py-4 px-2 sm:px-4">
+    <div className="flex-grow flex flex-col overflow-hidden w-full">
       {isLoadingChats ? (
         <div className="flex-grow flex items-center justify-center">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
         </div>
       ) : activeChatId ? (
-        <Card className="flex flex-col flex-grow shadow-xl rounded-xl overflow-hidden border border-border/30 bg-card backdrop-blur-md">
+        <Card className="flex flex-col flex-grow shadow-xl rounded-none sm:rounded-xl overflow-hidden border-0 sm:border border-border/30 bg-card backdrop-blur-md h-full">
           <ConversationView messages={messages} onFeedback={handleFeedback} />
           <QueryInput
             inputValue={inputValue}
@@ -58,7 +58,7 @@ function EnyiPageContent() {
           />
         </Card>
       ) : (
-        <div className="flex-grow flex items-center justify-center">
+        <div className="flex-grow flex items-center justify-center p-4">
           <Card className="p-8 text-center shadow-xl rounded-xl border-border/30 bg-card backdrop-blur-md">
             <h2 className="text-2xl font-semibold text-primary mb-4">Welcome to E ai</h2>
             <p className="text-muted-foreground">

@@ -57,8 +57,8 @@ export default function ImageGeneratorPage() {
   };
 
   return (
-    <div className="container mx-auto max-w-3xl py-8 px-4 flex-grow">
-      <Card className="shadow-xl">
+    <div className="w-full flex-grow flex flex-col items-center p-4">
+      <Card className="shadow-xl w-full max-w-3xl">
         <CardHeader>
           <div className="flex items-center space-x-3 mb-2">
             <ImageIcon className="h-8 w-8 text-primary" />

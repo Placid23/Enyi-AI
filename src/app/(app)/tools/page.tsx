@@ -6,8 +6,8 @@ import { Wrench } from "lucide-react";
 
 export default function ToolsPlaceholderPage() {
   return (
-    <div className="container mx-auto max-w-3xl py-8 px-4 flex-grow flex items-center justify-center">
-      <Card className="w-full shadow-xl text-center p-8">
+    <div className="w-full flex-grow flex flex-col items-center justify-center p-4">
+      <Card className="w-full max-w-3xl shadow-xl text-center p-8">
         <CardHeader>
           <div className="flex flex-col items-center space-y-3 mb-2">
             <Wrench className="h-16 w-16 text-primary opacity-70" />
