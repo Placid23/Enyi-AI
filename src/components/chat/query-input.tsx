@@ -1,9 +1,10 @@
+
 'use client';
 
 import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Mic, Paperclip, Send, Volume2, VolumeX, XCircle, Loader2 } from 'lucide-react';
+import { Mic, Paperclip, Send, Volume2, VolumeX, XCircle, Loader2, ImageIcon } from 'lucide-react';
 import type { FileAttachment } from '@/types';
 import { Badge } from '../ui/badge';
 import { cn } from '@/lib/utils';
@@ -14,6 +15,7 @@ interface QueryInputProps {
   onSendMessage: () => void;
   onVoiceInput: () => void;
   onFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onImageGeneratorClick: () => void; // New prop
   isRecording: boolean;
   isLoading: boolean;
   currentFile: FileAttachment | null;
@@ -28,6 +30,7 @@ const QueryInput: React.FC<QueryInputProps> = ({
   onSendMessage,
   onVoiceInput,
   onFileChange,
+  onImageGeneratorClick, // New prop
   isRecording,
   isLoading,
   currentFile,
@@ -90,6 +93,16 @@ const QueryInput: React.FC<QueryInputProps> = ({
           className="hidden"
           accept="image/*,video/*,application/pdf,.txt,.csv,.md,.json,.xml" 
         />
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onImageGeneratorClick} // Call new handler
+          disabled={isLoading || isRecording}
+          aria-label="Generate Image"
+          className="text-muted-foreground hover:text-primary rounded-full h-12 w-12"
+        >
+          <ImageIcon className="h-5 w-5" />
+        </Button>
         <Button
           variant={isRecording ? "destructive" : "ghost"}
           size="icon"

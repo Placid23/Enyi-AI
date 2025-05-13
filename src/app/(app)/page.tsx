@@ -8,10 +8,12 @@ import { Card } from '@/components/ui/card';
 import { useChat } from '@/context/chat-context';
 import { Loader2 } from 'lucide-react';
 import React from 'react';
-import { useAppSettings } from '@/context/app-settings-context'; // Import useAppSettings
+import { useAppSettings } from '@/context/app-settings-context'; 
+import { useRouter } from 'next/navigation'; // Import useRouter
 
 function EnyiPageContent() {
-  const { currentLanguage } = useAppSettings(); // Get currentLanguage from the new context
+  const { currentLanguage } = useAppSettings(); 
+  const router = useRouter(); // Initialize router
 
   const {
     messages,
@@ -27,12 +29,13 @@ function EnyiPageContent() {
     handleVoiceInput,
     handleFileChange,
     handleFeedback,
-  } = useChatHandler(currentLanguage); // Pass currentLanguage from context
+  } = useChatHandler(currentLanguage); 
 
   const { activeChatId, isLoadingChats } = useChat();
   
-  // Removed incorrect local AppContext definition:
-  // const AppContext = React.createContext<{ currentLanguage: string } | null>(null); 
+  const handleImageGeneratorClick = () => {
+    router.push('/image-generator');
+  };
 
   return (
     <div className="flex-grow flex flex-col overflow-hidden w-full">
@@ -49,6 +52,7 @@ function EnyiPageContent() {
             onSendMessage={handleSendMessage}
             onVoiceInput={handleVoiceInput}
             onFileChange={handleFileChange}
+            onImageGeneratorClick={handleImageGeneratorClick} // Pass the handler
             isRecording={isRecording}
             isLoading={isSendingMessage}
             currentFile={currentFile}
@@ -72,7 +76,5 @@ function EnyiPageContent() {
 }
 
 export default function EnyiChatPage() {
-  // AppSettingsProvider is now in (app)/layout.tsx, so EnyiPageContent
-  // can use useAppSettings() correctly.
   return <EnyiPageContent />;
 }

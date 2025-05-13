@@ -12,7 +12,7 @@ import {
   SidebarFooter, 
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, Trash2, Loader2, BrainCircuit, ImageIcon, Wrench } from 'lucide-react';
+import { MessageSquare, Trash2, Loader2, BrainCircuit, Wrench } from 'lucide-react';
 import { useChat, type Chat } from '@/context/chat-context';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -86,28 +86,6 @@ const AppSidebar: React.FC = () => {
                         'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
                         )}
                          tooltip={{
-                            children: "Image Generator",
-                            side: "right",
-                            align: "center",
-                            className: "ml-2" 
-                        }}
-                    >
-                        <Link href="/image-generator">
-                            <ImageIcon className="h-5 w-5 shrink-0 group-data-[state=collapsed]:h-6 group-data-[state=collapsed]:w-6" />
-                            <span className="truncate group-data-[state=expanded]:opacity-100 group-data-[state=collapsed]:hidden transition-opacity duration-200 flex-1 text-left ml-2.5">
-                                Image Generator
-                            </span>
-                        </Link>
-                    </SidebarMenuButton>
-                 </SidebarMenuItem>
-                 <SidebarMenuItem>
-                    <SidebarMenuButton
-                        asChild
-                        className={cn(
-                        "w-full justify-start text-sm h-auto py-2.5 px-3 rounded-md group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:py-3 group-data-[state=collapsed]:px-0",
-                        'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-                        )}
-                        tooltip={{
                             children: "Tools",
                             side: "right",
                             align: "center",
