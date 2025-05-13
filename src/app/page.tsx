@@ -1,3 +1,4 @@
+
 'use client';
 
 import AppHeader from '@/components/layout/app-header';
@@ -19,7 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import FacialSentimentAnalyzer from '@/components/facial-sentiment/facial-sentiment-analyzer';
 
-function AetherAssistPageContent() {
+function EnyiPageContent() {
   const [currentLanguage, setCurrentLanguage] = React.useState<string>('en'); 
   const [isFacialSentimentDialogOpen, setIsFacialSentimentDialogOpen] = useState(false);
 
@@ -76,7 +77,7 @@ function AetherAssistPageContent() {
             ) : (
               <div className="flex-grow flex items-center justify-center">
                 <Card className="p-8 text-center shadow-xl rounded-xl border-border/30 bg-card backdrop-blur-md">
-                  <h2 className="text-2xl font-semibold text-primary mb-4">Welcome to AetherAssist</h2>
+                  <h2 className="text-2xl font-semibold text-primary mb-4">Welcome to Enyi</h2>
                   <p className="text-muted-foreground">
                     Select a chat from the sidebar or start a new one to begin.
                   </p>
@@ -101,10 +102,11 @@ function AetherAssistPageContent() {
   );
 }
 
-export default function AetherAssistPage() {
+export default function EnyiPage() {
   return (
     <ChatProvider>
-      <AetherAssistPageContent />
+      <EnyiPageContent />
     </ChatProvider>
   );
 }
+

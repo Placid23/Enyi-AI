@@ -19,7 +19,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const AUTH_STORAGE_KEY = 'aether-assist-auth-user';
+const AUTH_STORAGE_KEY = 'enyi-auth-user';
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -73,3 +73,4 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
+

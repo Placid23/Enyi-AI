@@ -26,7 +26,7 @@ export default function TermsPage() {
               <section>
                 <h2 className="text-xl font-semibold text-primary mb-2">1. Introduction</h2>
                 <p>
-                  Welcome to AetherAssist ("Application", "Service", "we", "us", or "our"). These Terms and Conditions govern your use of our application and services. By accessing or using the Service, you agree to be bound by these Terms. If you disagree with any part of the terms, then you may not access the Service.
+                  Welcome to Enyi ("Application", "Service", "we", "us", or "our"). These Terms and Conditions govern your use of our application and services. By accessing or using the Service, you agree to be bound by these Terms. If you disagree with any part of the terms, then you may not access the Service.
                 </p>
               </section>
 
@@ -46,7 +46,7 @@ export default function TermsPage() {
               <section>
                 <h2 className="text-xl font-semibold text-primary mb-2">3. Intellectual Property</h2>
                 <p>
-                  The Service and its original content (excluding Content provided by users), features and functionality are and will remain the exclusive property of AetherAssist and its licensors. The Service is protected by copyright, trademark, and other laws of both the United States and foreign countries. Our trademarks and trade dress may not be used in connection with any product or service without the prior written consent of AetherAssist.
+                  The Service and its original content (excluding Content provided by users), features and functionality are and will remain the exclusive property of Enyi and its licensors. The Service is protected by copyright, trademark, and other laws of both the United States and foreign countries. Our trademarks and trade dress may not be used in connection with any product or service without the prior written consent of Enyi.
                 </p>
               </section>
               
@@ -69,7 +69,7 @@ export default function TermsPage() {
                   <li>In any way that violates any applicable national or international law or regulation.</li>
                   <li>For the purpose of exploiting, harming, or attempting to exploit or harm minors in any way by exposing them to inappropriate content or otherwise.</li>
                   <li>To transmit, or procure the sending of, any advertising or promotional material, including any "junk mail", "chain letter," "spam," or any other similar solicitation.</li>
-                  <li>To impersonate or attempt to impersonate AetherAssist, an AetherAssist employee, another user, or any other person or entity.</li>
+                  <li>To impersonate or attempt to impersonate Enyi, an Enyi employee, another user, or any other person or entity.</li>
                   <li>In any way that infringes upon the rights of others, or in any way is illegal, threatening, fraudulent, or harmful, or in connection with any unlawful, illegal, fraudulent, or harmful purpose or activity.</li>
                 </ul>
               </section>
@@ -87,7 +87,7 @@ export default function TermsPage() {
               <section>
                 <h2 className="text-xl font-semibold text-primary mb-2">7. Limitation Of Liability</h2>
                 <p>
-                  In no event shall AetherAssist, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from (i) your access to or use of or inability to access or use the Service; (ii) any conduct or content of any third party on the Service; (iii) any content obtained from the Service; and (iv) unauthorized access, use or alteration of your transmissions or content, whether based on warranty, contract, tort (including negligence) or any other legal theory, whether or not we have been informed of the possibility of such damage, and even if a remedy set forth herein is found to have failed of its essential purpose.
+                  In no event shall Enyi, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from (i) your access to or use of or inability to access or use the Service; (ii) any conduct or content of any third party on the Service; (iii) any content obtained from the Service; and (iv) unauthorized access, use or alteration of your transmissions or content, whether based on warranty, contract, tort (including negligence) or any other legal theory, whether or not we have been informed of the possibility of such damage, and even if a remedy set forth herein is found to have failed of its essential purpose.
                 </p>
               </section>
 
@@ -121,3 +121,4 @@ export default function TermsPage() {
     </div>
   );
 }
+

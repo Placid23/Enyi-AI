@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Message } from '@/types';
@@ -28,7 +29,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({ messages, onFeedbac
           <div className="flex flex-col items-center justify-center h-full text-center px-4">
             <MessageCircle className="h-16 w-16 text-primary opacity-60 mb-6" />
             <h2 className="text-2xl font-semibold text-foreground mb-2">
-              Welcome to AetherAssist!
+              Welcome to Enyi!
             </h2>
             <p className="text-muted-foreground max-w-md">
               Type a message, upload a file, or use voice input to begin.
@@ -45,3 +46,4 @@ const ConversationView: React.FC<ConversationViewProps> = ({ messages, onFeedbac
 };
 
 export default ConversationView;
+

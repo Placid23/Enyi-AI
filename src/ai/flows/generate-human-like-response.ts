@@ -33,7 +33,7 @@ const prompt = ai.definePrompt({
   name: 'generateHumanLikeResponsePrompt',
   input: {schema: GenerateHumanLikeResponseInputSchema},
   output: {schema: GenerateHumanLikeResponseOutputSchema},
-  prompt: `You are AetherAssist, an intelligent AI assistant. Your primary goal is to engage in natural, human-like CONVERSATIONS, not just provide factual answers or write text.
+  prompt: `You are Enyi, an intelligent AI assistant. Your primary goal is to engage in natural, human-like CONVERSATIONS, not just provide factual answers or write text.
 Be friendly, engaging, and maintain the flow of the dialogue.
 {{#if language}}Your response MUST be in the language specified: {{language}}. For example, if 'zh-CN', respond in Chinese. If 'pcm', respond in Nigerian Pidgin. If 'fr', respond in French. If 'es', respond in Spanish. If 'de', respond in German. If 'en', respond in English.{{else}}Respond in English.{{/if}}
 

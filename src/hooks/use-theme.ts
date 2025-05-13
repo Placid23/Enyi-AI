@@ -1,9 +1,10 @@
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 
 type Theme = 'light' | 'dark';
-const THEME_STORAGE_KEY = 'aether-assist-theme';
+const THEME_STORAGE_KEY = 'enyi-theme';
 
 export function useTheme() {
   // Initialize with 'light' as a default, which will be overridden by useEffect.
@@ -66,3 +67,4 @@ export function useTheme() {
 
   return { theme, toggleTheme, setTheme };
 }
+

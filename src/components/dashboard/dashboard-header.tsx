@@ -12,7 +12,7 @@ const DashboardHeader: React.FC = () => {
         <div className="flex items-center justify-between h-16">
           <Link href="/dashboard" className="flex items-center space-x-2 text-xl font-semibold text-primary hover:opacity-80 transition-opacity">
             <BrainCircuit className="h-7 w-7" />
-            <span>AetherAssist Dashboard</span>
+            <span>Enyi Dashboard</span>
           </Link>
           <div className="flex items-center space-x-4">
             <Link href="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">
@@ -27,3 +27,4 @@ const DashboardHeader: React.FC = () => {
 };
 
 export default DashboardHeader;
+

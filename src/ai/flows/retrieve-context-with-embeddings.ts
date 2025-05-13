@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A flow to simulate retrieving relevant context using embeddings.
@@ -55,15 +56,16 @@ const retrieveContextWithEmbeddingsFlow = ai.defineFlow(
 
     // For now, return mock data
     const mockContexts: string[] = [
-      `Simulated relevant context for "${input.queryText.substring(0,20)}...": The AetherAssist project aims to create a highly intelligent and adaptable AI assistant.`,
+      `Simulated relevant context for "${input.queryText.substring(0,20)}...": The Enyi project aims to create a highly intelligent and adaptable AI assistant.`,
       `Simulated relevant context for "${input.queryText.substring(0,20)}...": Key features include natural language understanding, context persistence, and learning from feedback.`,
     ];
     
     // If the query is very short, it might not yield good "retrieved" context.
     if (input.queryText.length < 10) {
-        return { relevantContexts: [`Simulated general context: AetherAssist is an advanced AI assistant.`] };
+        return { relevantContexts: [`Simulated general context: Enyi is an advanced AI assistant.`] };
     }
 
     return { relevantContexts: mockContexts };
   }
 );
+

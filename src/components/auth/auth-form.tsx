@@ -104,7 +104,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
       auth.login(mockEmail); // Call login from AuthContext
       toast({
         title: `Sign In with ${provider.charAt(0).toUpperCase() + provider.slice(1)} Successful`,
-        description: `Welcome to AetherAssist!`,
+        description: `Welcome to Enyi!`,
       });
       router.push('/dashboard'); // Redirect to dashboard
     } else {
@@ -126,7 +126,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
           {mode === 'signin' ? 'Welcome Back' : 'Create Account'}
         </CardTitle>
         <CardDescription className="text-lg">
-          {mode === 'signin' ? 'Sign in to AetherAssist.' : 'Join AetherAssist today.'}
+          {mode === 'signin' ? 'Sign in to Enyi.' : 'Join Enyi today.'}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -258,3 +258,4 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
 };
 
 export default AuthForm;
+

@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Message } from '@/types';
@@ -209,7 +210,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onFeedback }) =>
               )}
             >
                 <Loader2 className="animate-spin h-4 w-4" />
-                <span>AetherAssist is thinking...</span>
+                <span>Enyi is thinking...</span>
             </div>
           )}
 
@@ -279,3 +280,4 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onFeedback }) =>
 };
 
 export default MessageBubble;
+

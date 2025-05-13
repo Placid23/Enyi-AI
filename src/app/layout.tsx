@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'AetherAssist',
-  description: 'Your intelligent assistant for seamless interaction.',
+  title: 'Enyi',
+  description: 'Enyi - Your intelligent assistant for seamless interaction.',
 };
 
 export default function RootLayout({
@@ -38,3 +38,4 @@ export default function RootLayout({
     </html>
   );
 }
+

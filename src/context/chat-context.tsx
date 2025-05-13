@@ -28,7 +28,7 @@ interface ChatContextType {
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
-const CHATS_STORAGE_KEY = 'aether-assist-chats';
+const CHATS_STORAGE_KEY = 'enyi-chats';
 
 export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [chats, setChats] = useState<Chat[]>([]);
@@ -189,3 +189,4 @@ export const useChat = (): ChatContextType => {
   }
   return context;
 };
+
