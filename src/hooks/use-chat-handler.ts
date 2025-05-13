@@ -251,7 +251,7 @@ export function useChatHandler(currentLanguage: string) {
         const { response } = await generateHumanLikeResponse({ 
             query: interpretation.intent || query, 
             knowledgeBase, 
-            retrievedContexts, 
+            retrievedContexts: relevantContexts, 
             language: currentLanguage 
         });
         aiResponseText = response;
