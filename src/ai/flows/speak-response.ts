@@ -37,15 +37,15 @@ const speakResponseFlow = ai.defineFlow(
     outputSchema: SpeakResponseOutputSchema,
   },
   async input => {
-    const {text, languageCode} = input; // languageCode is available if needed by a specific model config
+    const {text: textToSpeak, languageCode} = input; // Renamed input.text to textToSpeak to avoid conflict
 
     // Use Genkit's generate functionality with a model capable of audio output.
-    // The language of the generated audio is primarily determined by the language of the input 'text'.
+    // The language of the generated audio is primarily determined by the language of the input 'textToSpeak'.
     // The 'languageCode' parameter is included in the schema for completeness and potential future use
     // with models or configurations that explicitly use it.
-    const {media, text: responseText} = await ai.generate({
-      model: 'googleai/gemini-1.5-flash-latest', // Ensure this model supports audio generation
-      prompt: text, // The text to be spoken, already in the target language
+    const {media, text: responseText} = await ai.generate({ // responseText is for the text part of the response
+      model: 'googleai/gemini-2.0-flash', // Changed model to project default
+      prompt: textToSpeak, 
       config: {
         responseModalities: ['AUDIO', 'TEXT'], // Ensure TEXT is also requested if model needs it
         // If the specific model/plugin supported an explicit language parameter for audio generation,
@@ -58,7 +58,7 @@ const speakResponseFlow = ai.defineFlow(
 
     if (!audioOutputUrl) {
       console.error(
-        `Text-to-Speech Error: No audio URL found in generation result. Input text was: "${text}". Language code hint: "${languageCode}". Full result:`,
+        `Text-to-Speech Error: No audio URL found in generation result. Input text was: "${textToSpeak}". Language code hint: "${languageCode}". Full result:`,
         JSON.stringify({media, responseText}, null, 2)
       );
       // The flow's contract is to return an audioDataUri. If it cannot, it should throw an error.
@@ -70,3 +70,4 @@ const speakResponseFlow = ai.defineFlow(
     return {audioDataUri: audioOutputUrl};
   }
 );
+
