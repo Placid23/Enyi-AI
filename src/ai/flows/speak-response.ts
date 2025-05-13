@@ -38,18 +38,37 @@ const speakResponseFlow = ai.defineFlow(
   async input => {
     const {text} = input;
 
-    // Use Genkit's generate functionality to call the Google Cloud Text-to-Speech API.
-    //This model is used because it can generate audio as well as text. Must provide TEXT and IMAGE. 
-    const {media} = await ai.generate({
-      model: 'googleai/gemini-2.0-flash-exp',
+    // Use Genkit's generate functionality.
+    // NOTE: The model 'googleai/gemini-2.0-flash-exp' is an image generation model.
+    // It is NOT suitable for text-to-speech. This flow will likely not produce audible speech.
+    // The comment below is misleading.
+    // "This model is used because it can generate audio as well as text. Must provide TEXT and IMAGE." - This is incorrect.
+    const generationResult = await ai.generate({
+      model: 'googleai/gemini-2.0-flash-exp', 
       prompt: text,
       config: {
-        responseModalities: ['TEXT', 'IMAGE'],
+        // Requesting TEXT and IMAGE modalities, though for TTS, AUDIO would be expected.
+        responseModalities: ['TEXT', 'IMAGE'], 
       },
     });
 
-    // Return the audio data URI.
-    return {audioDataUri: media.url!};
+    const mediaOutput = generationResult.media;
+
+    if (!mediaOutput?.url) {
+      // Log the entire result for debugging if media or URL is missing.
+      console.error(
+        'Text-to-Speech Error: No media URL found in generation result. This is expected as an image generation model is used. Full result:',
+        JSON.stringify(generationResult, null, 2)
+      );
+      // The flow's contract is to return an audioDataUri. If it cannot, it should throw an error.
+      throw new Error(
+        'Failed to generate audio data for speech output. The AI model did not return the expected media content, or the configured model is not capable of text-to-speech.'
+      );
+    }
+
+    // Assuming mediaOutput.url would be the audio data URI if the model supported TTS.
+    // For 'gemini-2.0-flash-exp', this URL will point to an image if generation was successful.
+    return {audioDataUri: mediaOutput.url};
   }
 );
 
