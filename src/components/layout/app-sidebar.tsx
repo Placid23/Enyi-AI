@@ -11,7 +11,7 @@ import {
   SidebarMenuButton,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, MessageSquare, Trash2, Loader2 } from 'lucide-react';
+import { MessageSquare, Trash2, Loader2, BrainCircuit } from 'lucide-react'; // Added BrainCircuit, removed PlusCircle
 import { useChat, type Chat } from '@/context/chat-context';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -48,19 +48,19 @@ const AppSidebar: React.FC = () => {
 
   return (
     <Sidebar
-      variant="sidebar" // This uses the default styling from ui/sidebar
-      collapsible="icon" // Allows collapsing to icon-only mode
+      variant="sidebar" 
+      collapsible="icon" 
       className="border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-lg transition-all duration-300 ease-in-out"
     >
-      <SidebarHeader className="p-3 border-b border-sidebar-border">
+      <SidebarHeader className="p-3"> {/* Removed border-b border-sidebar-border */}
         <Button
           onClick={handleCreateNewChat}
           variant="ghost"
-          className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          className="w-full h-auto py-2.5 px-2 flex items-center justify-start space-x-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group"
           aria-label="New Chat"
         >
-          <PlusCircle className="mr-2 h-5 w-5" />
-          <span className="group-data-[state=expanded]:opacity-100 group-data-[state=collapsed]:opacity-0 transition-opacity duration-200">
+          <BrainCircuit className="h-7 w-7 text-sidebar-primary group-hover:text-sidebar-accent-foreground transition-colors shrink-0" />
+          <span className="text-lg font-semibold group-data-[state=expanded]:opacity-100 group-data-[state=collapsed]:opacity-0 transition-opacity duration-200">
             New Chat
           </span>
         </Button>
@@ -94,7 +94,7 @@ const AppSidebar: React.FC = () => {
                       children: chat.title,
                       side: "right",
                       align: "center",
-                      className: "ml-2" // For collapsed state tooltip positioning
+                      className: "ml-2" 
                     }}
                   >
                     <MessageSquare className="h-5 w-5 shrink-0 group-data-[state=collapsed]:h-6 group-data-[state=collapsed]:w-6" />

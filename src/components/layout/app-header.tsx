@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { LogIn, UserPlus, BrainCircuit, Sun, Moon, Languages } from 'lucide-react'; // Added Languages icon
+import { LogIn, UserPlus, Sun, Moon, Languages } from 'lucide-react'; // Removed BrainCircuit
 import { useTheme } from '@/hooks/use-theme';
 import {
   Select,
@@ -31,16 +31,17 @@ const AppHeader = ({ currentLanguage, onLanguageChange }: AppHeaderProps) => {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <header className="bg-card text-card-foreground shadow-md sticky top-0 z-50 border-b">
+    <header className="bg-card text-card-foreground shadow-md sticky top-0 z-50"> {/* Removed border-b */}
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-4"> {/* Wrapper for left-aligned items */}
+        {/* Left side: Language Select */}
+        <div className="flex items-center">
           <Select value={currentLanguage} onValueChange={onLanguageChange}>
             <SelectTrigger 
-              className="w-auto min-w-[120px] text-sm h-9 px-3 border-border hover:bg-accent/10 focus:ring-accent" 
+              className="w-auto min-w-[130px] text-sm h-9 px-3 border-border hover:bg-accent/10 focus:ring-accent" 
               aria-label="Select language"
             >
               <div className="flex items-center">
-                <Languages className="h-4 w-4 mr-1.5 opacity-70" />
+                <Languages className="h-4 w-4 mr-2 opacity-70" />
                 <SelectValue placeholder="Language" />
               </div>
             </SelectTrigger>
@@ -52,13 +53,9 @@ const AppHeader = ({ currentLanguage, onLanguageChange }: AppHeaderProps) => {
               ))}
             </SelectContent>
           </Select>
-
-          <Link href="/" className="flex items-center space-x-2 group">
-            <BrainCircuit className="h-8 w-8 text-primary group-hover:text-accent transition-colors" aria-label="AetherAssist Logo" />
-            <h1 className="text-2xl font-bold tracking-tight text-primary group-hover:text-accent transition-colors">AetherAssist</h1>
-          </Link>
         </div>
         
+        {/* Right side: Navigation (Theme, Sign In, Sign Up) */}
         <nav className="space-x-2 flex items-center">
           <Button
             variant="ghost"
