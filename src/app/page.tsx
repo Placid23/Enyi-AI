@@ -77,9 +77,9 @@ function EnyiPageContent() {
             ) : (
               <div className="flex-grow flex items-center justify-center">
                 <Card className="p-8 text-center shadow-xl rounded-xl border-border/30 bg-card backdrop-blur-md">
-                  <h2 className="text-2xl font-semibold text-primary mb-4">Welcome to Enyi</h2>
+                  <h2 className="text-2xl font-semibold text-primary mb-4">Welcome to E ai</h2>
                   <p className="text-muted-foreground">
-                    Select a chat from the sidebar or start a new one to begin.
+                    A new chat has been started for you. You can also select an existing chat from the sidebar.
                   </p>
                 </Card>
               </div>

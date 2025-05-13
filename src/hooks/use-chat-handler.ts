@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
@@ -314,7 +315,7 @@ export function useChatHandler(currentLanguage: string) {
 
       mediaRecorderRef.current.start();
       setIsRecording(true);
-      toast({ title: 'Recording Started', description: 'Speak now...' });
+      // Removed toast notification for "Recording Started"
     } catch (error) {
       console.error('Error accessing microphone:', error);
       toast({ title: 'Microphone Error', description: 'Could not access microphone. Please check permissions.', variant: 'destructive' });

@@ -36,6 +36,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoadingChats, setIsLoadingChats] = useState(true);
 
   useEffect(() => {
+    let loadedChats: Chat[] = [];
+    let initialActiveChatId: string | null = null;
     try {
       const storedChats = localStorage.getItem(CHATS_STORAGE_KEY);
       if (storedChats) {
@@ -48,32 +50,33 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             timestamp: new Date(msg.timestamp),
           })),
         }));
-        setChats(parsedChats);
+        loadedChats = parsedChats;
         if (parsedChats.length > 0) {
             const sortedChats = [...parsedChats].sort((a,b) => new Date(b.lastUpdatedAt).getTime() - new Date(a.lastUpdatedAt).getTime());
-            setActiveChatIdState(sortedChats[0].id);
+            initialActiveChatId = sortedChats[0].id;
         }
       }
     } catch (error) {
       console.error("Failed to load chats from localStorage", error);
     }
+    
+    setChats(loadedChats);
+    setActiveChatIdState(initialActiveChatId); 
     setIsLoadingChats(false);
   }, []);
+
 
   useEffect(() => {
     if (!isLoadingChats) {
       try {
         localStorage.setItem(CHATS_STORAGE_KEY, JSON.stringify(chats));
-      } catch (error) {
+      } catch (error)
+      {
         console.error("Failed to save chats to localStorage", error);
       }
     }
   }, [chats, isLoadingChats]);
-
-  const setActiveChatId = useCallback((chatId: string | null) => {
-    setActiveChatIdState(chatId);
-  }, []);
-
+  
   const createNewChat = useCallback(async (): Promise<string> => {
     const newChatId = uuidv4();
     const newChat: Chat = {
@@ -88,6 +91,19 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return newChatId;
   }, []);
 
+  // Automatically create a new chat if none is active after loading
+  useEffect(() => {
+    if (!isLoadingChats && activeChatId === null) {
+      createNewChat();
+    }
+  }, [isLoadingChats, activeChatId, createNewChat]);
+
+
+  const setActiveChatId = useCallback((chatId: string | null) => {
+    setActiveChatIdState(chatId);
+  }, []);
+
+
   const deleteChat = useCallback((chatId: string) => {
     setChats((prevChats) => {
       const remainingChats = prevChats.filter((chat) => chat.id !== chatId);
@@ -96,12 +112,13 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const sortedRemaining = [...remainingChats].sort((a,b) => new Date(b.lastUpdatedAt).getTime() - new Date(a.lastUpdatedAt).getTime());
           setActiveChatIdState(sortedRemaining[0].id);
         } else {
-          setActiveChatIdState(null);
+          // If all chats are deleted, create a new one
+          createNewChat();
         }
       }
       return remainingChats;
     });
-  }, [activeChatId]);
+  }, [activeChatId, createNewChat]);
 
   const updateChatTitle = useCallback((chatId: string, title: string) => {
     setChats((prevChats) =>
