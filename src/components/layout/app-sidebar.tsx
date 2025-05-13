@@ -12,7 +12,7 @@ import {
   SidebarFooter, 
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, Trash2, Loader2, BrainCircuit, Wrench, ImageIcon } from 'lucide-react'; // ImageIcon might be removed if not used elsewhere
+import { MessageSquare, Trash2, Loader2, BrainCircuit, Wrench } from 'lucide-react'; 
 import { useChat, type Chat } from '@/context/chat-context';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -100,7 +100,6 @@ const AppSidebar: React.FC = () => {
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
-                {/* Removed Image Generator Link from Sidebar */}
               </SidebarMenu>
               {sortedChats.length === 0 && !isLoadingChats && (
                 <div className="p-4 pt-8 text-center text-sidebar-foreground/60 group-data-[state=expanded]:opacity-100 group-data-[state=collapsed]:opacity-0 transition-opacity duration-200">

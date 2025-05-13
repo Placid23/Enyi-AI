@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { LogIn, UserPlus, Sun, Moon, Languages, Smile, LayoutDashboard, ImageIcon, Wrench } from 'lucide-react'; 
+import { LogIn, UserPlus, Sun, Moon, Languages, Smile, LayoutDashboard } from 'lucide-react'; 
 import { useTheme } from '@/hooks/use-theme';
 import {
   Select,
@@ -28,9 +28,9 @@ const languageOptions = [
   { value: 'fr', label: 'Français' }, 
   { value: 'es', label: 'Español' }, 
   { value: 'de', label: 'Deutsch' },
-  { value: 'ko', label: '한국어' }, // Added Korean
-  { value: 'hi', label: 'हिन्दी' }, // Added Hindi
-  { value: 'ar', label: 'العربية' }, // Added Arabic
+  { value: 'ko', label: '한국어' }, 
+  { value: 'hi', label: 'हिन्दी' }, 
+  { value: 'ar', label: 'العربية' }, 
 ];
 
 const AppHeader = ({ currentLanguage, onLanguageChange, onFacialSentimentClick }: AppHeaderProps) => {
