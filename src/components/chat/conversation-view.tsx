@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Message } from '@/types';
@@ -9,22 +8,30 @@ import { MessageCircle } from 'lucide-react';
 
 interface ConversationViewProps {
   messages: Message[];
-  onFeedback: (messageId: string, feedbackType: 'positive' | 'negative', correctionText?: string) => void; // Added onFeedback prop
+  onFeedback: (messageId: string, feedbackType: 'positive' | 'negative', correctionText?: string) => void;
 }
 
 const ConversationView: React.FC<ConversationViewProps> = ({ messages, onFeedback }) => {
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const viewportRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRootRef = useRef<HTMLDivElement>(null); // Ref for the ScrollArea's root element
 
   useEffect(() => {
-    if (viewportRef.current) {
-      viewportRef.current.scrollTop = viewportRef.current.scrollHeight;
+    if (scrollAreaRootRef.current) {
+      // Find the viewport element within the ScrollArea root
+      const viewportElement = scrollAreaRootRef.current.querySelector<HTMLDivElement>(
+        '[data-radix-scroll-area-viewport]'
+      );
+      if (viewportElement) {
+        // Scroll to the bottom of the viewport
+        viewportElement.scrollTop = viewportElement.scrollHeight;
+      }
     }
-  }, [messages]);
+  }, [messages]); // Trigger effect when messages array changes
 
   return (
-    <ScrollArea className="flex-grow w-full p-4 md:p-6" ref={scrollAreaRef}> 
-      <div ref={viewportRef} className="h-full">
+    <ScrollArea className="flex-grow w-full p-4 md:p-6" ref={scrollAreaRootRef}> 
+      {/* The div below is a direct child of ScrollArea's Viewport. 
+          It no longer needs a separate ref for scrolling. */}
+      <div className="h-full"> 
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-4">
             <MessageCircle className="h-16 w-16 text-primary opacity-60 mb-6" />
@@ -37,7 +44,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({ messages, onFeedbac
           </div>
         ) : (
           <div className="space-y-4"> 
-            {messages.map((msg) => <MessageBubble key={msg.id} message={msg} onFeedback={onFeedback} />)} {/* Pass onFeedback */}
+            {messages.map((msg) => <MessageBubble key={msg.id} message={msg} onFeedback={onFeedback} />)}
           </div>
         )}
       </div>
