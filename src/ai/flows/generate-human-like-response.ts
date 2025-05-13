@@ -14,7 +14,7 @@ import {z} from 'genkit';
 const GenerateHumanLikeResponseInputSchema = z.object({
   query: z.string().describe('The interpreted user query.'),
   knowledgeBase: z.string().optional().describe('The knowledge base to use for generating the response.'),
-  language: z.string().optional().describe('The target language for the response (e.g., "en", "zh-CN", "pcm"). Default is English.'),
+  language: z.string().optional().describe('The target language for the response (e.g., "en", "zh-CN", "pcm", "fr", "es", "de"). Default is English.'),
 });
 export type GenerateHumanLikeResponseInput = z.infer<typeof GenerateHumanLikeResponseInputSchema>;
 
@@ -32,7 +32,7 @@ const prompt = ai.definePrompt({
   input: {schema: GenerateHumanLikeResponseInputSchema},
   output: {schema: GenerateHumanLikeResponseOutputSchema},
   prompt: `You are an AI assistant designed to provide human-like responses to user queries.
-{{#if language}}Your response MUST be in the language specified: {{language}}. For example, if 'zh-CN', respond in Chinese. If 'pcm', respond in Nigerian Pidgin. If 'en', respond in English.{{else}}Respond in English.{{/if}}
+{{#if language}}Your response MUST be in the language specified: {{language}}. For example, if 'zh-CN', respond in Chinese. If 'pcm', respond in Nigerian Pidgin. If 'fr', respond in French. If 'es', respond in Spanish. If 'de', respond in German. If 'en', respond in English.{{else}}Respond in English.{{/if}}
 
 Query: {{{query}}}
 

@@ -22,6 +22,9 @@ const languageOptions = [
   { value: 'en', label: 'English' },
   { value: 'zh-CN', label: '中文 (简体)' }, // Simplified Chinese
   { value: 'pcm', label: 'Nigerian Pidgin' },
+  { value: 'fr', label: 'Français' }, // French
+  { value: 'es', label: 'Español' }, // Spanish
+  { value: 'de', label: 'Deutsch' }, // German
 ];
 
 const AppHeader = ({ currentLanguage, onLanguageChange }: AppHeaderProps) => {

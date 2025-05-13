@@ -16,7 +16,7 @@ const UnderstandVoiceInputInputSchema = z.object({
     .describe(
       "Audio data as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
-  languageHint: z.string().optional().describe('A BCP-47 language code hint for transcription (e.g., "en-US", "zh-CN", "pcm").'),
+  languageHint: z.string().optional().describe('A BCP-47 language code hint for transcription (e.g., "en-US", "zh-CN", "pcm", "fr-FR", "es-ES", "de-DE").'),
 });
 export type UnderstandVoiceInputInput = z.infer<typeof UnderstandVoiceInputInputSchema>;
 

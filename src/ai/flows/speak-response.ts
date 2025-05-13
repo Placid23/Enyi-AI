@@ -13,7 +13,7 @@ import {z} from 'genkit';
 
 const SpeakResponseInputSchema = z.object({
   text: z.string().describe('The text to be converted to speech.'),
-  languageCode: z.string().optional().describe('BCP-47 language code for the speech, e.g., "en-US", "cmn-CN", "pcm". Helps ensure correct pronunciation and voice if the model supports it.'),
+  languageCode: z.string().optional().describe('BCP-47 language code for the speech, e.g., "en-US", "cmn-CN", "pcm", "fr-FR", "es-ES", "de-DE". Helps ensure correct pronunciation and voice if the model supports it.'),
 });
 export type SpeakResponseInput = z.infer<typeof SpeakResponseInputSchema>;
 
@@ -43,26 +43,27 @@ const speakResponseFlow = ai.defineFlow(
     // The language of the generated audio is primarily determined by the language of the input 'text'.
     // The 'languageCode' parameter is included in the schema for completeness and potential future use
     // with models or configurations that explicitly use it.
-    const {audio} = await ai.generate({
+    const {media, text: responseText} = await ai.generate({
       model: 'googleai/gemini-1.5-flash-latest', // Ensure this model supports audio generation
       prompt: text, // The text to be spoken, already in the target language
       config: {
-        responseModalities: ['AUDIO'],
+        responseModalities: ['AUDIO', 'TEXT'], // Ensure TEXT is also requested if model needs it
         // If the specific model/plugin supported an explicit language parameter for audio generation,
         // it would be configured here, potentially using `languageCode`.
         // e.g., ...(languageCode && { ttsLanguage: languageCode })
       },
     });
 
-    const audioOutputUrl = audio?.url;
+    const audioOutputUrl = media?.url;
 
     if (!audioOutputUrl) {
       console.error(
-        'Text-to-Speech Error: No audio URL found in generation result. Input text was: "${text}". Language code hint: "${languageCode}". Full result:',
-        JSON.stringify(audio, null, 2)
+        `Text-to-Speech Error: No audio URL found in generation result. Input text was: "${text}". Language code hint: "${languageCode}". Full result:`,
+        JSON.stringify({media, responseText}, null, 2)
       );
+      // The flow's contract is to return an audioDataUri. If it cannot, it should throw an error.
       throw new Error(
-        'Failed to generate audio data for speech output. The AI model did not return the expected audio content.'
+        'Failed to generate audio data for speech output. The AI model did not return the expected media content, or the configured model is not capable of text-to-speech.'
       );
     }
     
