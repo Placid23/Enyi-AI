@@ -1,9 +1,8 @@
-
 'use client'; 
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { LogIn, UserPlus, Sun, Moon, Languages } from 'lucide-react';
+import { LogIn, UserPlus, Sun, Moon, Languages, Smile } from 'lucide-react'; // Added Smile icon
 import { useTheme } from '@/hooks/use-theme';
 import {
   Select,
@@ -16,6 +15,7 @@ import {
 interface AppHeaderProps {
   currentLanguage: string;
   onLanguageChange: (lang: string) => void;
+  onFacialSentimentClick: () => void; // New prop to handle click
 }
 
 const languageOptions = [
@@ -27,7 +27,7 @@ const languageOptions = [
   { value: 'de', label: 'Deutsch' }, 
 ];
 
-const AppHeader = ({ currentLanguage, onLanguageChange }: AppHeaderProps) => {
+const AppHeader = ({ currentLanguage, onLanguageChange, onFacialSentimentClick }: AppHeaderProps) => {
   const { theme, toggleTheme } = useTheme();
 
   return (
@@ -55,8 +55,17 @@ const AppHeader = ({ currentLanguage, onLanguageChange }: AppHeaderProps) => {
           </Select>
         </div>
         
-        {/* Right side: Navigation (Theme, Sign In, Sign Up) */}
+        {/* Right side: Navigation (Facial Sentiment, Theme, Sign In, Sign Up) */}
         <nav className="space-x-2 flex items-center">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onFacialSentimentClick} // Call the new prop
+            aria-label="Facial Sentiment Analysis"
+            className="text-muted-foreground hover:bg-muted/50 hover:text-foreground h-10 w-10 rounded-lg"
+          >
+            <Smile className="h-5 w-5" />
+          </Button>
           <Button
             variant="ghost"
             size="icon"

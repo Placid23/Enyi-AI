@@ -1,10 +1,9 @@
-
 'use client';
 
 import type { Message } from '@/types';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Bot, User, Download, FileText, AlertCircle, Brain, Info, Loader2 } from 'lucide-react'; 
+import { Bot, User, Download, FileText, AlertCircle, Brain, Info, Loader2, Video } from 'lucide-react'; 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -26,6 +25,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
   const [showDetails, setShowDetails] = useState(false);
   const isUser = message.sender === 'user';
   const isImageFile = message.file?.type.startsWith('image/');
+  const isVideoFile = message.file?.type.startsWith('video/');
 
   const handleDownload = () => {
     if (message.file) {
@@ -84,9 +84,23 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
                   className="rounded-md object-cover max-h-64 w-auto shadow"
                   data-ai-hint="attachment preview"
                 />
+              ) : isVideoFile ? (
+                <div className="flex flex-col items-center">
+                  <video
+                    controls
+                    src={message.file.dataUri}
+                    className="rounded-md max-h-64 w-auto shadow"
+                    data-ai-hint="video attachment"
+                    style={{maxWidth: '100%'}}
+                  />
+                  <p className="mt-2 font-medium text-xs">{message.file.name}</p>
+                   <p className={cn("text-xs", isUser ? "text-primary-foreground/80" : "text-muted-foreground")}>
+                      {message.file.type} - {formatFileSize(message.file.size)}
+                    </p>
+                </div>
               ) : (
                 <div className="flex items-center space-x-3">
-                  <FileText className={cn("h-10 w-10", isUser ? "text-primary-foreground/90" : "text-accent")} />
+                  {message.file.type.startsWith('audio/') ? <Video className={cn("h-10 w-10", isUser ? "text-primary-foreground/90" : "text-accent")} /> : <FileText className={cn("h-10 w-10", isUser ? "text-primary-foreground/90" : "text-accent")} /> }
                   <div>
                     <p className="font-medium">{message.file.name}</p>
                     <p className={cn("text-xs", isUser ? "text-primary-foreground/80" : "text-muted-foreground")}>

@@ -1,4 +1,3 @@
-
 'use client';
 
 import AppHeader from '@/components/layout/app-header';
@@ -10,10 +9,19 @@ import AppSidebar from '@/components/layout/app-sidebar';
 import { ChatProvider, useChat } from '@/context/chat-context';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'; 
 import { Loader2 } from 'lucide-react';
-import React from 'react'; 
+import React, { useState } from 'react'; 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import FacialSentimentAnalyzer from '@/components/facial-sentiment/facial-sentiment-analyzer';
 
 function AetherAssistPageContent() {
   const [currentLanguage, setCurrentLanguage] = React.useState<string>('en'); 
+  const [isFacialSentimentDialogOpen, setIsFacialSentimentDialogOpen] = useState(false);
 
   const {
     messages,
@@ -37,7 +45,11 @@ function AetherAssistPageContent() {
       <div className="flex h-screen bg-background text-foreground overflow-hidden">
         <AppSidebar />
         <SidebarInset className="flex flex-col flex-1 overflow-hidden">
-          <AppHeader currentLanguage={currentLanguage} onLanguageChange={setCurrentLanguage} />
+          <AppHeader 
+            currentLanguage={currentLanguage} 
+            onLanguageChange={setCurrentLanguage}
+            onFacialSentimentClick={() => setIsFacialSentimentDialogOpen(true)} 
+          />
           <main className="flex-grow flex flex-col overflow-hidden container mx-auto max-w-5xl w-full py-4 px-2 sm:px-4">
             {isLoadingChats ? (
                  <div className="flex-grow flex items-center justify-center">
@@ -73,6 +85,17 @@ function AetherAssistPageContent() {
           </main>
         </SidebarInset>
       </div>
+      <Dialog open={isFacialSentimentDialogOpen} onOpenChange={setIsFacialSentimentDialogOpen}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle>Facial Sentiment Analysis</DialogTitle>
+            <DialogDescription>
+              Allow camera access, position your face in the view, and click "Analyze Sentiment".
+            </DialogDescription>
+          </DialogHeader>
+          <FacialSentimentAnalyzer />
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 }

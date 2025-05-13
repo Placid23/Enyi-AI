@@ -88,7 +88,7 @@ const QueryInput: React.FC<QueryInputProps> = ({
           ref={fileInputRef}
           onChange={onFileChange}
           className="hidden"
-          accept="image/*,application/pdf,.txt,.csv,.md,.json,.xml" 
+          accept="image/*,video/*,application/pdf,.txt,.csv,.md,.json,.xml" 
         />
         <Button
           variant={isRecording ? "destructive" : "ghost"}
