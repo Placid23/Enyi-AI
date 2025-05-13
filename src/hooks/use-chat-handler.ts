@@ -56,7 +56,6 @@ export function useChatHandler(currentLanguage: string) {
   const playAudioResponse = useCallback(async (text: string) => {
     if (!voiceOutputEnabled || !audioPlayerRef.current || !text.trim()) return;
     try {
-      // Use gemini-2.0-flash-exp for speech generation as per previous fixes
       const { audioDataUri } = await speakResponse({ text, languageCode: currentLanguage });
       audioPlayerRef.current.src = audioDataUri;
       audioPlayerRef.current.play().catch(e => console.error("Error playing audio:", e));
@@ -95,11 +94,15 @@ export function useChatHandler(currentLanguage: string) {
     try {
       const currentChat = getActiveChat();
       const conversationHistory = currentChat ? currentChat.messages.filter(m => m.id !== aiThinkingMessageId).slice(-10) : []; 
-      const userQueryContext = conversationHistory.map(m => `${m.sender}: ${m.text || (m.file ? `[file: ${m.file.name}]` : "[empty message]")}`).join('\n');
+      
+      // Context for interpretation (broader recent history)
+      const userQueryContextForInterpretation = conversationHistory
+        .map(m => `${m.sender === 'user' ? 'User' : 'Enyi'}: ${m.text || (m.file ? `[file: ${m.file.name}]` : "[message content unclear]")}`)
+        .join('\n');
 
       const interpretation: InterpretUserQueryOutput = await interpretUserQuery({ 
-        query, 
-        context: userQueryContext
+        query: query.trim(), 
+        context: userQueryContextForInterpretation
       });
       
       updateMessageInChat(activeChatId, aiThinkingMessageId, { intent: interpretation.intent, requiresContext: interpretation.requiresContext });
@@ -109,7 +112,7 @@ export function useChatHandler(currentLanguage: string) {
       let aiResponseFile: FileAttachment | undefined = undefined;
 
       // Retrieve broader context using embeddings (simulated)
-      const { relevantContexts } = await retrieveContextWithEmbeddings({ queryText: interpretation.intent || query });
+      const { relevantContexts } = await retrieveContextWithEmbeddings({ queryText: interpretation.intent || query.trim() });
 
       const lowerCaseQuery = query.toLowerCase();
       const interpretedIntentLower = interpretation.intent?.toLowerCase() || "";
@@ -132,7 +135,6 @@ export function useChatHandler(currentLanguage: string) {
           const keywordIndex = combinedQueryAndIntent.indexOf(keyword);
           if (keywordIndex !== -1) {
               isImageRequest = true;
-              // Prioritize extracting prompt from original query first, then from intent
               const queryKeywordIndex = lowerCaseQuery.indexOf(keyword);
               if (queryKeywordIndex !== -1) {
                   imagePrompt = query.substring(queryKeywordIndex + keyword.length).trim();
@@ -152,7 +154,6 @@ export function useChatHandler(currentLanguage: string) {
                    if (!imagePrompt || imagePrompt.length < 3) {
                        imagePrompt = (interpretation.intent || "").toLowerCase().replace(keyword, "").trim();
                    }
-                  // Remove common leading/trailing punctuation that might result from simple replace
                   imagePrompt = imagePrompt.replace(/^["“'(,.)]+|["”'),.]+$|[,.]$/g, '').trim();
                   break;
               }
@@ -160,27 +161,23 @@ export function useChatHandler(currentLanguage: string) {
       }
       
       if (isImageRequest && (!imagePrompt || imagePrompt.length < 3)) { 
-          // If image request detected but prompt is weak, try to use the whole intent (minus keywords)
           let tempIntentPrompt = interpretation.intent || "";
           for (const keyword of [...specificImageKeywords, ...generalImageKeywords]) {
               const keywordIndex = tempIntentPrompt.toLowerCase().indexOf(keyword);
               if (keywordIndex !== -1) {
-                  // Try to take text after the keyword
                   let extracted = tempIntentPrompt.substring(keywordIndex + keyword.length).trim();
                   if (extracted.length >=3) {
                      tempIntentPrompt = extracted;
                      break;
                   }
-                  // Or before the keyword if nothing after
                    extracted = tempIntentPrompt.substring(0, keywordIndex).trim();
                    if (extracted.length >=3) {
                      tempIntentPrompt = extracted;
                      break;
                    }
-                  
               }
           }
-          if (tempIntentPrompt.length >= 3 && tempIntentPrompt !== interpretation.intent) { // Check if it changed
+          if (tempIntentPrompt.length >= 3 && tempIntentPrompt !== interpretation.intent) { 
             imagePrompt = tempIntentPrompt.replace(/^["“'(,.)]+|["”'),.]+$|[,.]$/g, '').trim();
           } else if (interpretation.intent && interpretation.intent.length >=3) {
              imagePrompt = interpretation.intent.replace(/^["“'(,.)]+|["”'),.]+$|[,.]$/g, '').trim();
@@ -188,7 +185,7 @@ export function useChatHandler(currentLanguage: string) {
       }
       
       if (isImageRequest && (!imagePrompt || imagePrompt.length < 3)) {
-          imagePrompt = "A vibrant and interesting abstract design"; // Fallback default prompt
+          imagePrompt = "A vibrant and interesting abstract design"; 
       }
       
       console.log("Image generation debug info:", { 
@@ -197,6 +194,22 @@ export function useChatHandler(currentLanguage: string) {
         extractedImagePrompt: imagePrompt, 
         interpretedIntent: interpretation.intent 
       });
+
+      // Context for response generation (more focused recent history)
+      const knowledgeBase = conversationHistory.slice(-6) 
+        .map(m => {
+          let content = m.text || "";
+          if (m.file) {
+            content += ` [${m.sender === 'user' ? 'User' : 'Enyi'} sent a file: ${m.file.name}]`;
+          }
+          if (!content.trim() && m.sender === 'user') {
+              content = "[User sent a message without text, possibly just a file or an action]";
+          } else if (!content.trim() && m.sender === 'ai') {
+              content = "[AI sent a message without text, possibly an image or error state]";
+          }
+          return `${m.sender === 'user' ? 'User' : 'Enyi'}: ${content.trim()}`;
+        })
+        .join('\n');
 
       if (isImageRequest && !attachedFile) {
         console.log(`Attempting to generate image with prompt: "${imagePrompt}"`);
@@ -235,11 +248,10 @@ export function useChatHandler(currentLanguage: string) {
         analysisResult = { summary, keyInsights, confidenceLevel };
         updateMessageInChat(activeChatId, aiThinkingMessageId, { text: aiResponseText, isLoading: false, analyzedInfo: analysisResult });
       } else {
-        const knowledgeBase = conversationHistory.filter(m => m.sender === 'ai' && m.text).slice(-3).map(m => m.text).join('\n');
         const { response } = await generateHumanLikeResponse({ 
             query: interpretation.intent || query, 
             knowledgeBase, 
-            retrievedContexts: relevantContexts, 
+            retrievedContexts, 
             language: currentLanguage 
         });
         aiResponseText = response;
@@ -315,7 +327,6 @@ export function useChatHandler(currentLanguage: string) {
 
       mediaRecorderRef.current.start();
       setIsRecording(true);
-      // Removed toast notification for "Recording Started"
     } catch (error) {
       console.error('Error accessing microphone:', error);
       toast({ title: 'Microphone Error', description: 'Could not access microphone. Please check permissions.', variant: 'destructive' });
@@ -409,3 +420,4 @@ export function useChatHandler(currentLanguage: string) {
     handleFeedback,
   };
 }
+
