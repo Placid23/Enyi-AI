@@ -20,16 +20,13 @@ const ImageGeneratorDialog: React.FC<ImageGeneratorDialogProps> = ({ isOpen, onO
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md md:max-w-lg p-0">
-        {/* DialogHeader can be part of ImageGeneratorForm if preferred, or kept minimal here */}
-        {/* 
         <DialogHeader className="p-6 pb-2">
           <DialogTitle>AI Image Generator</DialogTitle>
           <DialogDescription>
             Describe the image you want to create. Let your imagination run wild!
           </DialogDescription>
         </DialogHeader>
-        */}
-        <div className="p-6">
+        <div className="p-6 pt-0">
          <ImageGeneratorForm />
         </div>
       </DialogContent>
@@ -38,3 +35,4 @@ const ImageGeneratorDialog: React.FC<ImageGeneratorDialogProps> = ({ isOpen, onO
 };
 
 export default ImageGeneratorDialog;
+
