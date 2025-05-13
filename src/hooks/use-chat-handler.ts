@@ -169,15 +169,22 @@ export function useChatHandler(currentLanguage: string) {
         reader.onloadend = async () => {
           const audioDataUri = reader.result as string;
           setIsLoading(true); 
-          const thinkingId = addMessageToChat(activeChatId, {sender: 'ai', text: 'Listening...', isLoading: true});
           try {
             // Pass currentLanguage as languageHint for transcription
             const { transcribedText } = await understandVoiceInput({ audioDataUri, languageHint: currentLanguage });
-            updateMessageInChat(activeChatId, thinkingId, { text: `You said: "${transcribedText}"`, isLoading: false });
+            // Directly call handleSendMessageCallback with the transcribed text.
+            // This will create a user message with the transcription and then the AI's response.
             await handleSendMessageCallback(transcribedText, currentFile || undefined);
           } catch (e) {
             console.error('Error transcribing voice:', e);
-            updateMessageInChat(activeChatId, thinkingId, {text: 'Sorry, I could not understand your voice.', isLoading: false, isError: true });
+            if(activeChatId) {
+              addMessageToChat(activeChatId, {
+                sender: 'ai',
+                text: 'Sorry, I could not understand your voice.',
+                isError: true,
+                isLoading: false,
+              });
+            }
             toast({ title: 'Voice Input Error', description: 'Could not transcribe audio.', variant: 'destructive' });
           } finally {
             setIsLoading(false);
@@ -193,7 +200,7 @@ export function useChatHandler(currentLanguage: string) {
       console.error('Error accessing microphone:', error);
       toast({ title: 'Microphone Error', description: 'Could not access microphone.', variant: 'destructive' });
     }
-  }, [isRecording, toast, handleSendMessageCallback, currentFile, activeChatId, addMessageToChat, updateMessageInChat, currentLanguage]);
+  }, [isRecording, toast, handleSendMessageCallback, currentFile, activeChatId, addMessageToChat, currentLanguage]);
 
   const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
