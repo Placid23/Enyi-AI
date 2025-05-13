@@ -1,8 +1,9 @@
+
 'use client'; 
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { LogIn, UserPlus, Sun, Moon, Languages, Smile } from 'lucide-react'; // Added Smile icon
+import { LogIn, UserPlus, Sun, Moon, Languages, Smile, LayoutDashboard } from 'lucide-react'; 
 import { useTheme } from '@/hooks/use-theme';
 import {
   Select,
@@ -11,11 +12,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAuth } from '@/context/auth-context'; 
+import UserAvatarDropdown from '@/components/dashboard/user-avatar-dropdown';
 
 interface AppHeaderProps {
   currentLanguage: string;
   onLanguageChange: (lang: string) => void;
-  onFacialSentimentClick: () => void; // New prop to handle click
+  onFacialSentimentClick: () => void; 
 }
 
 const languageOptions = [
@@ -29,6 +32,7 @@ const languageOptions = [
 
 const AppHeader = ({ currentLanguage, onLanguageChange, onFacialSentimentClick }: AppHeaderProps) => {
   const { theme, toggleTheme } = useTheme();
+  const { user, isLoading } = useAuth();
 
   return (
     <header className="bg-card text-card-foreground shadow-sm sticky top-0 z-50">
@@ -55,12 +59,12 @@ const AppHeader = ({ currentLanguage, onLanguageChange, onFacialSentimentClick }
           </Select>
         </div>
         
-        {/* Right side: Navigation (Facial Sentiment, Theme, Sign In, Sign Up) */}
+        {/* Right side: Navigation */}
         <nav className="space-x-2 flex items-center">
           <Button
             variant="ghost"
             size="icon"
-            onClick={onFacialSentimentClick} // Call the new prop
+            onClick={onFacialSentimentClick} 
             aria-label="Facial Sentiment Analysis"
             className="text-muted-foreground hover:bg-muted/50 hover:text-foreground h-10 w-10 rounded-lg"
           >
@@ -75,16 +79,23 @@ const AppHeader = ({ currentLanguage, onLanguageChange, onFacialSentimentClick }
           >
             {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
           </Button>
-          <Button variant="ghost" asChild className="text-foreground hover:bg-muted/50 hover:text-foreground h-10 px-4 rounded-lg">
-            <Link href="/auth/sign-in">
-              <LogIn className="mr-2 h-4.5 w-4.5" /> Sign In
-            </Link>
-          </Button>
-          <Button variant="outline" asChild className="border-primary/70 text-primary hover:bg-primary hover:text-primary-foreground h-10 px-4 rounded-lg">
-            <Link href="/auth/sign-up">
-              <UserPlus className="mr-2 h-4.5 w-4.5" /> Sign Up
-            </Link>
-          </Button>
+
+          {!isLoading && user ? (
+            <UserAvatarDropdown />
+          ) : !isLoading && !user ? (
+            <>
+              <Button variant="ghost" asChild className="text-foreground hover:bg-muted/50 hover:text-foreground h-10 px-4 rounded-lg">
+                <Link href="/auth/sign-in">
+                  <LogIn className="mr-2 h-4.5 w-4.5" /> Sign In
+                </Link>
+              </Button>
+              <Button variant="outline" asChild className="border-primary/70 text-primary hover:bg-primary hover:text-primary-foreground h-10 px-4 rounded-lg">
+                <Link href="/auth/sign-up">
+                  <UserPlus className="mr-2 h-4.5 w-4.5" /> Sign Up
+                </Link>
+              </Button>
+            </>
+          ) : null /* Show nothing during auth loading state */}
         </nav>
       </div>
     </header>
