@@ -39,25 +39,21 @@ const speakResponseFlow = ai.defineFlow(
   async input => {
     const {text: textToSpeak, languageCode} = input; 
 
-    // The 'languageCode' parameter is included in the schema for completeness and potential future use
-    // with models or configurations that explicitly use it.
-    // The current error "Model does not support the requested response modalities: audio,text"
-    // for 'googleai/gemini-2.0-flash' suggests changing the modalities.
-    // We will request only 'AUDIO'.
+    // Attempting to use gemini-2.0-flash-exp and requesting both AUDIO and TEXT,
+    // similar to how image generation requires TEXT and IMAGE.
+    // The languageCode might be used by the model if it supports it for TTS.
     const generationResult = await ai.generate({ 
-      model: 'googleai/gemini-2.0-flash', 
+      model: 'googleai/gemini-2.0-flash-exp', // Changed to experimental model
       prompt: textToSpeak, 
       config: {
-        responseModalities: ['AUDIO'], // Changed from ['AUDIO', 'TEXT']
-        // If the specific model/plugin supported an explicit language parameter for audio generation,
-        // it would be configured here, potentially using `languageCode`.
-        // e.g., ...(languageCode && { ttsLanguage: languageCode })
+        responseModalities: ['AUDIO', 'TEXT'], // Requesting both audio and text
+        // Potentially, if the model supports it, language/voice config would go here:
+        // ...(languageCode && { ttsOptions: { languageCode: languageCode } }) // This is hypothetical
       },
     });
 
     const media = generationResult.media;
-    // responseText will likely be undefined if 'TEXT' is not in responseModalities.
-    const responseText = generationResult.text; 
+    const responseText = generationResult.text; // Text part of the response
 
     const audioOutputUrl = media?.url;
 
@@ -66,7 +62,6 @@ const speakResponseFlow = ai.defineFlow(
         `Text-to-Speech Error: No audio URL found in generation result. Input text was: "${textToSpeak}". Language code hint: "${languageCode}". Full result:`,
         JSON.stringify({media, responseText}, null, 2)
       );
-      // The flow's contract is to return an audioDataUri. If it cannot, it should throw an error.
       throw new Error(
         'Failed to generate audio data for speech output. The AI model did not return the expected media content, or the configured model is not capable of text-to-speech.'
       );
