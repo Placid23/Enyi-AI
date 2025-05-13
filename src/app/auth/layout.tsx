@@ -8,9 +8,6 @@ export default function AuthLayout({
       <main className="w-full max-w-md">
         {children}
       </main>
-      <footer className="mt-8 text-center text-sm text-muted-foreground">
-        AetherAssist &copy; {new Date().getFullYear()}
-      </footer>
     </div>
   );
 }

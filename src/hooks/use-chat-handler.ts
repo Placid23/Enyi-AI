@@ -1,8 +1,10 @@
+
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { Message, FileAttachment } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { useChat } from '@/context/chat-context'; 
 
 import { interpretUserQuery } from '@/ai/flows/interpret-user-query';
 import type { InterpretUserQueryOutput } from '@/ai/flows/interpret-user-query';
@@ -14,9 +16,15 @@ import { analyzeInformation as analyzeInformationFlow } from '@/ai/flows/analyze
 
 
 export function useChatHandler() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const { 
+    activeChatId, 
+    addMessageToChat, 
+    updateMessageInChat, 
+    getActiveChat,
+  } = useChat(); 
+
   const [inputValue, setInputValue] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Local loading state for input processing
   const [isRecording, setIsRecording] = useState(false);
   const [voiceOutputEnabled, setVoiceOutputEnabled] = useState(false);
   const [currentFile, setCurrentFile] = useState<FileAttachment | null>(null);
@@ -26,6 +34,8 @@ export function useChatHandler() {
   const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
 
   const { toast } = useToast();
+
+  const messages = getActiveChat()?.messages || [];
 
   useEffect(() => {
     audioPlayerRef.current = new Audio();
@@ -38,27 +48,6 @@ export function useChatHandler() {
         audioPlayerRef.current = null;
       }
     };
-  }, []);
-
-  const addMessage = useCallback((sender: 'user' | 'ai', text?: string, file?: FileAttachment, isLoading?: boolean, isError?: boolean, analyzedInfo?: Message['analyzedInfo'], intent?: string, requiresContext?: boolean) => {
-    const newMessage: Message = {
-      id: Date.now().toString() + Math.random().toString(),
-      sender,
-      text,
-      file,
-      timestamp: new Date(),
-      isLoading,
-      isError,
-      analyzedInfo,
-      intent,
-      requiresContext,
-    };
-    setMessages((prevMessages) => [...prevMessages, newMessage]);
-    return newMessage.id;
-  }, []);
-
-  const updateMessage = useCallback((id: string, updates: Partial<Message>) => {
-    setMessages(prev => prev.map(msg => msg.id === id ? { ...msg, ...updates } : msg));
   }, []);
 
   const playAudioResponse = useCallback(async (text: string) => {
@@ -75,54 +64,73 @@ export function useChatHandler() {
 
 
   const handleSendMessage = useCallback(async (query: string, attachedFile?: FileAttachment) => {
+    if (!activeChatId) {
+      toast({ title: 'Error', description: 'No active chat selected.', variant: 'destructive' });
+      return;
+    }
     if (!query.trim() && !attachedFile) return;
 
     setIsLoading(true);
-    const userMessageId = addMessage('user', query.trim() || (attachedFile ? "File attached" : ""), attachedFile);
+    
+    const userMessageContent: Omit<Message, 'id' | 'timestamp'> = {
+        sender: 'user',
+        text: query.trim() || (attachedFile ? "File attached" : ""), // Display "File attached" if query is empty but file exists
+        file: attachedFile,
+    };
+    addMessageToChat(activeChatId, userMessageContent);
+    
     setInputValue('');
     setCurrentFile(null);
 
-    const aiThinkingMessageId = addMessage('ai', undefined, undefined, true);
+    const aiThinkingMessageContent: Omit<Message, 'id' | 'timestamp'> = {
+        sender: 'ai',
+        isLoading: true,
+    };
+    const aiThinkingMessageId = addMessageToChat(activeChatId, aiThinkingMessageContent);
 
     try {
-      // 1. Interpret Query
-      const interpretation: InterpretUserQueryOutput = await interpretUserQuery({ query, context: messages.slice(-5).map(m => `${m.sender}: ${m.text || "file"}`).join('\n') });
-      updateMessage(aiThinkingMessageId, { intent: interpretation.intent, requiresContext: interpretation.requiresContext });
+      const currentChat = getActiveChat();
+      // Get messages before the AI thinking message was added
+      const conversationHistory = currentChat ? currentChat.messages.filter(m => m.id !== aiThinkingMessageId).slice(-5) : [];
+
+
+      const interpretation: InterpretUserQueryOutput = await interpretUserQuery({ 
+        query, 
+        context: conversationHistory.map(m => `${m.sender}: ${m.text || "file"}`).join('\n') 
+      });
+      
+      updateMessageInChat(activeChatId, aiThinkingMessageId, { intent: interpretation.intent, requiresContext: interpretation.requiresContext });
       
       let aiResponseText = '';
       let analysisResult: Message['analyzedInfo'] | undefined = undefined;
 
       if (attachedFile) {
-        // 2a. Handle File Input
         const { answer } = await importAndProcessFile({ fileDataUri: attachedFile.dataUri, query: interpretation.intent || query });
         aiResponseText = answer;
         
-        // Optionally, perform deeper analysis on the file content or AI's answer about the file
         if (interpretation.intent.toLowerCase().includes("analyze") || interpretation.intent.toLowerCase().includes("summary")) {
              const { summary, keyInsights, confidenceLevel } = await analyzeInformationFlow({ information: answer, query: interpretation.intent });
              analysisResult = { summary, keyInsights, confidenceLevel };
         }
 
       } else if (interpretation.intent.toLowerCase().includes("research") || interpretation.intent.toLowerCase().includes("analyze")) {
-        // 2b. Deep Research / Information Analysis
         const { summary, keyInsights, confidenceLevel } = await analyzeInformationFlow({ information: query, query: interpretation.intent });
         aiResponseText = `${summary}\n\nKey Insights: ${keyInsights}`;
         analysisResult = { summary, keyInsights, confidenceLevel };
       } else {
-        // 2c. Generate Standard Response
-        const knowledgeBase = messages.filter(m => m.sender === 'ai' && m.text).slice(-3).map(m => m.text).join('\n');
+        const knowledgeBase = conversationHistory.filter(m => m.sender === 'ai' && m.text).slice(-3).map(m => m.text).join('\n');
         const { response } = await generateHumanLikeResponse({ query: interpretation.intent, knowledgeBase });
         aiResponseText = response;
       }
       
-      updateMessage(aiThinkingMessageId, { text: aiResponseText, isLoading: false, analyzedInfo: analysisResult });
+      updateMessageInChat(activeChatId, aiThinkingMessageId, { text: aiResponseText, isLoading: false, analyzedInfo: analysisResult });
       if (voiceOutputEnabled) {
         await playAudioResponse(aiResponseText);
       }
 
     } catch (error) {
       console.error('Error processing message:', error);
-      updateMessage(aiThinkingMessageId, { text: "Sorry, I encountered an error.", isLoading: false, isError: true });
+      updateMessageInChat(activeChatId, aiThinkingMessageId, { text: "Sorry, I encountered an error.", isLoading: false, isError: true });
       toast({ title: 'Error', description: 'Could not process your request.', variant: 'destructive' });
        if (voiceOutputEnabled) {
         await playAudioResponse("Sorry, I encountered an error.");
@@ -130,10 +138,15 @@ export function useChatHandler() {
     } finally {
       setIsLoading(false);
     }
-  }, [addMessage, updateMessage, playAudioResponse, toast, voiceOutputEnabled, messages]);
+  }, [activeChatId, addMessageToChat, updateMessageInChat, playAudioResponse, toast, voiceOutputEnabled, getActiveChat]);
 
 
   const handleVoiceInput = useCallback(async () => {
+    if (!activeChatId) {
+        toast({ title: 'Error', description: 'No active chat selected for voice input.', variant: 'destructive' });
+        return;
+    }
+
     if (isRecording) {
       mediaRecorderRef.current?.stop();
       setIsRecording(false);
@@ -155,21 +168,21 @@ export function useChatHandler() {
         reader.readAsDataURL(audioBlob);
         reader.onloadend = async () => {
           const audioDataUri = reader.result as string;
-          setIsLoading(true);
-          const thinkingId = addMessage('ai', 'Listening...', undefined, true);
+          setIsLoading(true); // Local loading state for voice processing
+          const thinkingId = addMessageToChat(activeChatId, {sender: 'ai', text: 'Listening...', isLoading: true});
           try {
             const { transcribedText } = await understandVoiceInput({ audioDataUri });
-            updateMessage(thinkingId, { text: `You said: "${transcribedText}"`, isLoading: false });
+            updateMessageInChat(activeChatId, thinkingId, { text: `You said: "${transcribedText}"`, isLoading: false });
+            // Now, send this transcribed text as a new message.
             await handleSendMessage(transcribedText, currentFile || undefined);
           } catch (e) {
             console.error('Error transcribing voice:', e);
-            updateMessage(thinkingId, {text: 'Sorry, I could not understand your voice.', isLoading: false, isError: true });
+            updateMessageInChat(activeChatId, thinkingId, {text: 'Sorry, I could not understand your voice.', isLoading: false, isError: true });
             toast({ title: 'Voice Input Error', description: 'Could not transcribe audio.', variant: 'destructive' });
           } finally {
-            setIsLoading(false);
+            setIsLoading(false); // End local loading state for voice processing
           }
         };
-        // Clean up stream tracks
         stream.getTracks().forEach(track => track.stop());
       };
 
@@ -180,7 +193,7 @@ export function useChatHandler() {
       console.error('Error accessing microphone:', error);
       toast({ title: 'Microphone Error', description: 'Could not access microphone.', variant: 'destructive' });
     }
-  }, [isRecording, toast, handleSendMessage, currentFile, addMessage, updateMessage]);
+  }, [isRecording, toast, handleSendMessage, currentFile, activeChatId, addMessageToChat, updateMessageInChat]);
 
   const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -198,6 +211,8 @@ export function useChatHandler() {
       };
       reader.readAsDataURL(file);
     }
+    // Clear the input value to allow re-selecting the same file if needed
+    event.target.value = '';
   }, [toast]);
   
   const triggerSend = () => {
@@ -208,13 +223,13 @@ export function useChatHandler() {
     messages,
     inputValue,
     setInputValue,
-    isLoading,
+    isLoading, // This is the local isLoading for send/voice operation
     isRecording,
     voiceOutputEnabled,
     setVoiceOutputEnabled,
     currentFile,
     setCurrentFile,
-    handleSendMessage: triggerSend, // Expose the wrapper
+    handleSendMessage: triggerSend,
     handleVoiceInput,
     handleFileChange,
   };
