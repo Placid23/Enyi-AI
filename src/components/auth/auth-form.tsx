@@ -7,8 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation'; // Changed from 'next/navigation'
-import { Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation'; 
+import { Loader2, ShieldCheck } from 'lucide-react'; // Changed icon
 
 interface AuthFormProps {
   mode: 'signin' | 'signup';
@@ -57,19 +57,16 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
   };
 
   return (
-    <Card className="w-full max-w-md shadow-2xl">
+    <Card className="w-full max-w-md shadow-2xl border border-border/50"> {/* Added subtle border */}
       <CardHeader className="text-center">
-        <div className="mx-auto mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-16 w-16 text-primary mx-auto">
-                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
-                 <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0 8c-1.65 0-3-1.35-3-3s1.35-3 3-3 3 1.35 3 3-1.35 3-3 3z" opacity="0.3"/>
-            </svg>
+        <div className="mx-auto mb-4 p-3 bg-primary/10 rounded-full inline-block"> {/* Icon background */}
+            <ShieldCheck className="h-12 w-12 text-primary" /> {/* Changed icon */}
         </div>
         <CardTitle className="text-3xl font-bold text-primary">
-          {mode === 'signin' ? 'Welcome Back to AetherAssist' : 'Join AetherAssist'}
+          {mode === 'signin' ? 'Welcome Back' : 'Create Account'}
         </CardTitle>
-        <CardDescription>
-          {mode === 'signin' ? 'Sign in to continue your session.' : 'Create an account to get started.'}
+        <CardDescription className="text-lg"> {/* Slightly larger description */}
+          {mode === 'signin' ? 'Sign in to AetherAssist.' : 'Join AetherAssist today.'}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -83,7 +80,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="focus:ring-accent"
+              className="focus:ring-primary focus:border-primary text-base" /* Ensure primary ring, text size */
             />
           </div>
           <div className="space-y-2">
@@ -95,7 +92,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="focus:ring-accent"
+              className="focus:ring-primary focus:border-primary text-base"
             />
           </div>
           {mode === 'signup' && (
@@ -108,11 +105,11 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                className="focus:ring-accent"
+                className="focus:ring-primary focus:border-primary text-base"
               />
             </div>
           )}
-          <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-lg py-3" disabled={isLoading}>
+          <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-lg py-3 rounded-lg" disabled={isLoading}> {/* Rounded-lg */}
             {isLoading ? (
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
             ) : (
@@ -121,7 +118,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
           </Button>
         </form>
       </CardContent>
-      <CardFooter className="flex flex-col items-center space-y-2">
+      <CardFooter className="flex flex-col items-center space-y-3 pt-6"> {/* Increased pt and space-y */}
         <p className="text-sm text-muted-foreground">
           {mode === 'signin' ? "Don't have an account? " : 'Already have an account? '}
           <Link href={mode === 'signin' ? '/auth/sign-up' : '/auth/sign-in'} className="font-semibold text-accent hover:underline">

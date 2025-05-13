@@ -3,7 +3,7 @@
 import type { Message } from '@/types';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Bot, User, Download, FileText, AlertCircle, ExternalLink } from 'lucide-react';
+import { Bot, User, Download, FileText, AlertCircle, ExternalLink, Brain } from 'lucide-react'; // Added Brain icon
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -38,87 +38,96 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
   return (
     <div
       className={cn(
-        'flex w-full items-start space-x-3 py-3',
-        isUser ? 'justify-end' : 'justify-start'
+        'flex w-full items-end space-x-3 py-2', // items-end to align avatar with bottom of bubble
+        isUser ? 'justify-end pl-8 md:pl-16' : 'justify-start pr-8 md:pr-16' // Add more horizontal room
       )}
     >
       {!isUser && (
-        <Avatar className="h-10 w-10 border border-primary/20">
-          <AvatarFallback className="bg-primary text-primary-foreground">
-            <Bot size={24} />
+        <Avatar className="h-10 w-10 border-2 border-primary/30 shadow-sm"> {/* Added shadow and thicker border */}
+          <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground"> {/* Gradient fallback */}
+            <Bot size={22} />
           </AvatarFallback>
         </Avatar>
       )}
       <Card
         className={cn(
-          'max-w-[75%] rounded-xl shadow-md',
+          'max-w-[85%] rounded-2xl shadow-lg', // Larger radius, stronger shadow
           isUser
-            ? 'bg-primary text-primary-foreground rounded-br-none'
-            : 'bg-card text-card-foreground rounded-bl-none'
+            ? 'bg-gradient-to-r from-primary via-primary/90 to-primary/80 text-primary-foreground rounded-br-lg' // User gradient
+            : 'bg-card text-card-foreground rounded-bl-lg border border-border/70' // AI subtle border
         )}
       >
-        <CardContent className="p-3 space-y-2">
+        <CardContent className="p-3 space-y-2 text-sm">
           {message.text && (
-            <p className="text-sm whitespace-pre-wrap break-words">{message.text}</p>
+            <p className="whitespace-pre-wrap break-words leading-relaxed">{message.text}</p>
           )}
           {message.file && (
-            <div className="mt-2 p-3 border border-border rounded-lg bg-background/50 text-foreground">
+            <div className={cn(
+              "mt-2 p-3 border rounded-lg",
+              isUser ? "border-primary-foreground/30 bg-primary/80" : "border-border bg-secondary/50 text-secondary-foreground"
+            )}>
               {isImageFile ? (
                 <Image
                   src={message.file.dataUri}
                   alt={message.file.name}
                   width={200}
                   height={200}
-                  className="rounded-md object-cover max-h-64"
+                  className="rounded-md object-cover max-h-64 w-auto shadow-md"
                   data-ai-hint="attachment preview"
                 />
               ) : (
-                <div className="flex items-center space-x-2">
-                  <FileText className="h-8 w-8 text-muted-foreground" />
+                <div className="flex items-center space-x-3">
+                  <FileText className={cn("h-10 w-10", isUser ? "text-primary-foreground/80" : "text-accent")} />
                   <div>
-                    <p className="text-sm font-medium">{message.file.name}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="font-medium">{message.file.name}</p>
+                    <p className={cn("text-xs", isUser ? "text-primary-foreground/70" : "text-muted-foreground")}>
                       {message.file.type} - {formatFileSize(message.file.size)}
                     </p>
                   </div>
                 </div>
               )}
               <Button
-                variant="outline"
+                variant={isUser ? "ghost" : "outline"}
                 size="sm"
                 onClick={handleDownload}
-                className="mt-2 w-full text-accent border-accent hover:bg-accent hover:text-accent-foreground"
+                className={cn(
+                  "mt-3 w-full text-xs py-1.5",
+                  isUser ? "bg-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/30" : "text-accent border-accent hover:bg-accent hover:text-accent-foreground"
+                )}
               >
-                <Download className="mr-2 h-4 w-4" /> Download
+                <Download className="mr-1.5 h-3.5 w-3.5" /> Download
               </Button>
             </div>
           )}
 
           {message.analyzedInfo && (
-            <Card className="mt-2 bg-secondary/30">
-              <CardHeader className="p-2">
-                <CardTitle className="text-sm flex items-center">
-                  <ExternalLink className="h-4 w-4 mr-2 text-accent" /> Analysis Results
+            <Card className={cn(
+              "mt-3 shadow-inner",
+              isUser ? "bg-primary/70 border-primary-foreground/20" : "bg-secondary/60 border-border"
+            )}>
+              <CardHeader className="p-2.5">
+                <CardTitle className="text-sm flex items-center font-semibold">
+                  <Brain className="h-4 w-4 mr-2 text-accent" /> Analysis Results
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-2 text-xs">
-                <p><strong>Summary:</strong> {message.analyzedInfo.summary}</p>
-                <p><strong>Key Insights:</strong> {message.analyzedInfo.keyInsights}</p>
+              <CardContent className="p-2.5 text-xs space-y-1">
+                <div><strong>Summary:</strong> {message.analyzedInfo.summary}</div>
+                <div><strong>Key Insights:</strong> {message.analyzedInfo.keyInsights}</div>
               </CardContent>
-              <CardFooter className="p-2 text-xs">
-                <p>Confidence: {(message.analyzedInfo.confidenceLevel * 100).toFixed(0)}%</p>
+              <CardFooter className="p-2.5 text-xs font-medium">
+                Confidence: {(message.analyzedInfo.confidenceLevel * 100).toFixed(0)}%
               </CardFooter>
             </Card>
           )}
 
           {message.isError && (
-             <div className="mt-2 text-destructive-foreground bg-destructive/80 p-2 rounded-md flex items-center text-xs">
+             <div className="mt-2 text-destructive-foreground bg-destructive/90 p-2.5 rounded-lg flex items-center text-xs shadow">
                 <AlertCircle className="h-4 w-4 mr-2" />
                 <span>An error occurred. Please try again.</span>
             </div>
           )}
           {message.isLoading && (
-            <div className="flex items-center space-x-2 text-xs text-muted-foreground mt-1">
+            <div className="flex items-center space-x-2 text-xs mt-1 opacity-80">
                 <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -129,17 +138,17 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
 
         </CardContent>
         {!message.isLoading && (
-          <CardFooter className={cn("px-3 pb-2 pt-0 text-xs", isUser ? "text-primary-foreground/70" : "text-muted-foreground")}>
+          <CardFooter className={cn("px-3 pb-2 pt-1 text-xs", isUser ? "text-primary-foreground/70" : "text-muted-foreground")}>
             {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            {message.intent && ` (Intent: ${message.intent})`}
-            {message.requiresContext && <span className="ml-1 italic">(Needs context)</span>}
+            {message.intent && <span className="ml-1 italic opacity-80">(Intent: {message.intent})</span>}
+            {message.requiresContext && <span className="ml-1 italic opacity-80">(Needs context)</span>}
           </CardFooter>
         )}
       </Card>
       {isUser && (
-         <Avatar className="h-10 w-10 border border-accent/30">
-          <AvatarFallback className="bg-accent text-accent-foreground">
-            <User size={24} />
+         <Avatar className="h-10 w-10 border-2 border-accent/40 shadow-sm"> {/* Added shadow and thicker border */}
+          <AvatarFallback className="bg-gradient-to-br from-accent to-pink-500 text-accent-foreground"> {/* Gradient fallback */}
+            <User size={22} />
           </AvatarFallback>
         </Avatar>
       )}
