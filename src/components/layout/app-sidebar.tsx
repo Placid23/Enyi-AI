@@ -9,6 +9,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarFooter, // Added SidebarFooter import
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { MessageSquare, Trash2, Loader2, BrainCircuit } from 'lucide-react';
@@ -45,6 +46,8 @@ const AppSidebar: React.FC = () => {
   const sortedChats = React.useMemo(() => {
     return [...chats].sort((a, b) => new Date(b.lastUpdatedAt).getTime() - new Date(a.lastUpdatedAt).getTime());
   }, [chats]);
+
+  const currentYear = new Date().getFullYear();
 
   return (
     <Sidebar
@@ -143,6 +146,11 @@ const AppSidebar: React.FC = () => {
           )}
         </ScrollArea>
       </SidebarContent>
+      <SidebarFooter className="p-3 border-t border-sidebar-border mt-auto">
+        <div className="text-xs text-sidebar-foreground/60 text-center group-data-[state=expanded]:opacity-100 group-data-[state=collapsed]:opacity-0 transition-opacity duration-200">
+          Enyi AI &copy; {currentYear}
+        </div>
+      </SidebarFooter>
     </Sidebar>
   );
 };
