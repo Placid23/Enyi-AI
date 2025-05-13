@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -39,34 +40,39 @@ const speakResponseFlow = ai.defineFlow(
   async input => {
     const {text: textToSpeak, languageCode} = input; 
 
-    // Attempting to use gemini-2.0-flash-exp and requesting both AUDIO and TEXT,
-    // similar to how image generation requires TEXT and IMAGE.
-    // The languageCode might be used by the model if it supports it for TTS.
+    // This flow now uses googleai/gemini-2.0-flash-exp model.
+    // The error "Model does not support the requested response modalities: text,audio"
+    // indicates that requesting both 'TEXT' and 'AUDIO' is not supported for this model.
+    // We will request only 'AUDIO' as the primary goal is text-to-speech.
+    // The 'languageCode' parameter is included in the schema for completeness and potential future use
+    // with models or configurations that explicitly use it.
     const generationResult = await ai.generate({ 
-      model: 'googleai/gemini-2.0-flash-exp', // Changed to experimental model
+      model: 'googleai/gemini-2.0-flash-exp', 
       prompt: textToSpeak, 
       config: {
-        responseModalities: ['AUDIO', 'TEXT'], // Requesting both audio and text
+        responseModalities: ['AUDIO'], // Requesting ONLY audio
         // Potentially, if the model supports it, language/voice config would go here:
         // ...(languageCode && { ttsOptions: { languageCode: languageCode } }) // This is hypothetical
       },
     });
 
     const media = generationResult.media;
-    const responseText = generationResult.text; // Text part of the response
+    // If only 'AUDIO' is requested, 'generationResult.text' is not expected to be populated.
 
     const audioOutputUrl = media?.url;
 
     if (!audioOutputUrl) {
       console.error(
         `Text-to-Speech Error: No audio URL found in generation result. Input text was: "${textToSpeak}". Language code hint: "${languageCode}". Full result:`,
-        JSON.stringify({media, responseText}, null, 2)
+        JSON.stringify(generationResult, null, 2) // Log the full generationResult
       );
+      // The flow's contract is to return an audioDataUri. If it cannot, it should throw an error.
       throw new Error(
         'Failed to generate audio data for speech output. The AI model did not return the expected media content, or the configured model is not capable of text-to-speech.'
       );
     }
     
+    // Return the audio data URI.
     return {audioDataUri: audioOutputUrl};
   }
 );
