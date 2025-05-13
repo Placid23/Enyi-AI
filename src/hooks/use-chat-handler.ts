@@ -14,6 +14,7 @@ import { importAndProcessFile } from '@/ai/flows/import-and-process-file';
 import { analyzeInformation as analyzeInformationFlow } from '@/ai/flows/analyze-information';
 import { processUserFeedback } from '@/ai/flows/process-user-feedback';
 import { generateImage } from '@/ai/flows/generate-image-flow';
+import { retrieveContextWithEmbeddings } from '@/ai/flows/retrieve-context-with-embeddings';
 
 
 export function useChatHandler(currentLanguage: string) {
@@ -54,6 +55,7 @@ export function useChatHandler(currentLanguage: string) {
   const playAudioResponse = useCallback(async (text: string) => {
     if (!voiceOutputEnabled || !audioPlayerRef.current || !text.trim()) return;
     try {
+      // Use gemini-2.0-flash-exp for speech generation as per previous fixes
       const { audioDataUri } = await speakResponse({ text, languageCode: currentLanguage });
       audioPlayerRef.current.src = audioDataUri;
       audioPlayerRef.current.play().catch(e => console.error("Error playing audio:", e));
@@ -105,7 +107,11 @@ export function useChatHandler(currentLanguage: string) {
       let analysisResult: Message['analyzedInfo'] | undefined = undefined;
       let aiResponseFile: FileAttachment | undefined = undefined;
 
+      // Retrieve broader context using embeddings (simulated)
+      const { relevantContexts } = await retrieveContextWithEmbeddings({ queryText: interpretation.intent || query });
+
       const lowerCaseQuery = query.toLowerCase();
+      const interpretedIntentLower = interpretation.intent?.toLowerCase() || "";
       let isImageRequest = false;
       let imagePrompt = "";
 
@@ -116,45 +122,67 @@ export function useChatHandler(currentLanguage: string) {
       ];
       const generalImageKeywords = [
           "generate image", "create image", "draw picture", "make picture", 
-          "generate photo", "create photo"
+          "generate photo", "create photo", "image of", "picture of", "photo of"
       ];
+      
+      const combinedQueryAndIntent = `${query} ${interpretation.intent || ''}`.toLowerCase();
 
       for (const keyword of specificImageKeywords) {
-          const keywordIndex = lowerCaseQuery.indexOf(keyword);
+          const keywordIndex = combinedQueryAndIntent.indexOf(keyword);
           if (keywordIndex !== -1) {
               isImageRequest = true;
-              imagePrompt = query.substring(keywordIndex + keyword.length).trim();
+              // Prioritize extracting prompt from original query first, then from intent
+              const queryKeywordIndex = lowerCaseQuery.indexOf(keyword);
+              if (queryKeywordIndex !== -1) {
+                  imagePrompt = query.substring(queryKeywordIndex + keyword.length).trim();
+              } else {
+                  const intentKeywordIndex = interpretedIntentLower.indexOf(keyword);
+                  imagePrompt = interpretation.intent!.substring(intentKeywordIndex + keyword.length).trim();
+              }
               break;
           }
       }
 
       if (!isImageRequest) {
           for (const keyword of generalImageKeywords) {
-              if (lowerCaseQuery.includes(keyword)) {
+               if (combinedQueryAndIntent.includes(keyword)) {
                   isImageRequest = true;
-                  // Attempt to extract a subject if the keyword is general
                   imagePrompt = query.toLowerCase().replace(keyword, "").trim();
+                   if (!imagePrompt || imagePrompt.length < 3) {
+                       imagePrompt = (interpretation.intent || "").toLowerCase().replace(keyword, "").trim();
+                   }
                   // Remove common leading/trailing punctuation that might result from simple replace
-                  if (imagePrompt.startsWith(",")) imagePrompt = imagePrompt.substring(1).trim();
-                  if (imagePrompt.endsWith(",")) imagePrompt = imagePrompt.slice(0, -1).trim();
+                  imagePrompt = imagePrompt.replace(/^["“'(,.)]+|["”'),.]+$|[,.]$/g, '').trim();
                   break;
               }
           }
       }
       
-      if (isImageRequest && (!imagePrompt || imagePrompt.length < 3)) { // If detected but prompt is weak
-          if (interpretation.intent) {
-              let tempIntentPrompt = interpretation.intent;
-              for (const keyword of [...specificImageKeywords, ...generalImageKeywords]) {
-                  const keywordIndex = tempIntentPrompt.toLowerCase().indexOf(keyword);
-                  if (keywordIndex !== -1) {
-                      tempIntentPrompt = tempIntentPrompt.substring(keywordIndex + keyword.length).trim();
-                      break; 
+      if (isImageRequest && (!imagePrompt || imagePrompt.length < 3)) { 
+          // If image request detected but prompt is weak, try to use the whole intent (minus keywords)
+          let tempIntentPrompt = interpretation.intent || "";
+          for (const keyword of [...specificImageKeywords, ...generalImageKeywords]) {
+              const keywordIndex = tempIntentPrompt.toLowerCase().indexOf(keyword);
+              if (keywordIndex !== -1) {
+                  // Try to take text after the keyword
+                  let extracted = tempIntentPrompt.substring(keywordIndex + keyword.length).trim();
+                  if (extracted.length >=3) {
+                     tempIntentPrompt = extracted;
+                     break;
                   }
+                  // Or before the keyword if nothing after
+                   extracted = tempIntentPrompt.substring(0, keywordIndex).trim();
+                   if (extracted.length >=3) {
+                     tempIntentPrompt = extracted;
+                     break;
+                   }
+                  
               }
-              if (tempIntentPrompt.length >= 3) {
-                  imagePrompt = tempIntentPrompt;
-              }
+          }
+          if (tempIntentPrompt.length >= 3 && tempIntentPrompt !== interpretation.intent) { // Check if it changed
+            imagePrompt = tempIntentPrompt.replace(/^["“'(,.)]+|["”'),.]+$|[,.]$/g, '').trim();
+          } else if (interpretation.intent && interpretation.intent.length >=3) {
+             imagePrompt = interpretation.intent.replace(/^["“'(,.)]+|["”'),.]+$|[,.]$/g, '').trim();
           }
       }
       
@@ -164,7 +192,6 @@ export function useChatHandler(currentLanguage: string) {
       
       console.log("Image generation debug info:", { 
         originalQuery: query, 
-        lowerCaseQuery, 
         isImageRequest, 
         extractedImagePrompt: imagePrompt, 
         interpretedIntent: interpretation.intent 
@@ -182,7 +209,7 @@ export function useChatHandler(currentLanguage: string) {
                 size: imageDataUri.length, 
                 dataUri: imageDataUri,
             };
-            aiResponseText = revisedPrompt || `Here's the image I generated for "${imagePrompt}":`;
+            aiResponseText = revisedPrompt || `I've generated an image for "${imagePrompt}":`;
             updateMessageInChat(activeChatId, aiThinkingMessageId, { text: aiResponseText, isLoading: false, file: aiResponseFile });
         
         } catch (imgError: any) {
@@ -208,7 +235,12 @@ export function useChatHandler(currentLanguage: string) {
         updateMessageInChat(activeChatId, aiThinkingMessageId, { text: aiResponseText, isLoading: false, analyzedInfo: analysisResult });
       } else {
         const knowledgeBase = conversationHistory.filter(m => m.sender === 'ai' && m.text).slice(-3).map(m => m.text).join('\n');
-        const { response } = await generateHumanLikeResponse({ query: interpretation.intent || query, knowledgeBase, language: currentLanguage });
+        const { response } = await generateHumanLikeResponse({ 
+            query: interpretation.intent || query, 
+            knowledgeBase, 
+            retrievedContexts, 
+            language: currentLanguage 
+        });
         aiResponseText = response;
         updateMessageInChat(activeChatId, aiThinkingMessageId, { text: aiResponseText, isLoading: false });
       }

@@ -31,10 +31,10 @@ export async function processUserFeedback(input: ProcessUserFeedbackInput): Prom
 }
 
 // This prompt is a placeholder. In a real system, this flow might:
-// 1. Store the feedback in a database.
-// 2. Queue the feedback for review by human moderators.
-// 3. Use the feedback to fine-tune models (requires significant infrastructure).
-// 4. Trigger alerts for problematic responses.
+// 1. Store the feedback in a database (e.g., for analysis, dashboarding).
+// 2. Queue the feedback for review by human moderators or for safety monitoring.
+// 3. Use the feedback as part of a dataset for fine-tuning models or Reinforcement Learning from Human Feedback (RLHF) processes.
+// 4. Trigger alerts for particularly problematic responses or patterns.
 const prompt = ai.definePrompt({
   name: 'processUserFeedbackPrompt',
   input: { schema: ProcessUserFeedbackInputSchema },
@@ -54,7 +54,7 @@ User Query Context: {{{userQueryContext}}}
 {{/if}}
 
 Acknowledge receipt of this feedback. If the feedback is negative with a correction, note that this information is valuable for improving future responses.
-This system currently logs feedback for future analysis and potential model improvement.
+This system logs feedback for future analysis, safety monitoring, and potential model improvement via processes like fine-tuning or RLHF.
 Respond with a status of "received" and a confirmation message.
 `,
 });
@@ -68,8 +68,12 @@ const processUserFeedbackFlow = ai.defineFlow(
   async (input) => {
     console.log('Received user feedback:', input);
 
-    // In a real application, you would store this feedback in a database,
-    // potentially associate it with the user, and use it for model improvement pipelines.
+    // In a real application, you would store this feedback in a database.
+    // This data is invaluable for:
+    // - Manual review and quality assurance.
+    // - Safety monitoring and identifying harmful or biased outputs.
+    // - Creating datasets for fine-tuning specialized models.
+    // - Implementing Reinforcement Learning from Human Feedback (RLHF) to align model behavior.
     // For now, we'll just simulate processing with a simple AI call or direct response.
 
     // Example of a simple acknowledgment without calling another LLM:
@@ -103,3 +107,4 @@ const processUserFeedbackFlow = ai.defineFlow(
     // return output;
   }
 );
+

@@ -10,5 +10,6 @@ import '@/ai/flows/interpret-user-query.ts';
 import '@/ai/flows/analyze-information.ts';
 import '@/ai/flows/analyze-facial-sentiment.ts'; 
 import '@/ai/flows/process-user-feedback.ts'; 
-import '@/ai/flows/generate-image-flow.ts'; // Added new flow for image generation
+import '@/ai/flows/generate-image-flow.ts';
+import '@/ai/flows/retrieve-context-with-embeddings.ts'; // Added new flow for context retrieval
 
