@@ -8,9 +8,10 @@ import { MessageCircle } from 'lucide-react';
 
 interface ConversationViewProps {
   messages: Message[];
+  onFeedback: (messageId: string, feedbackType: 'positive' | 'negative', correctionText?: string) => void; // Added onFeedback prop
 }
 
-const ConversationView: React.FC<ConversationViewProps> = ({ messages }) => {
+const ConversationView: React.FC<ConversationViewProps> = ({ messages, onFeedback }) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
 
@@ -35,7 +36,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({ messages }) => {
           </div>
         ) : (
           <div className="space-y-4"> 
-            {messages.map((msg) => <MessageBubble key={msg.id} message={msg} />)}
+            {messages.map((msg) => <MessageBubble key={msg.id} message={msg} onFeedback={onFeedback} />)} {/* Pass onFeedback */}
           </div>
         )}
       </div>

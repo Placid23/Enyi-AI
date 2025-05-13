@@ -21,4 +21,7 @@ export interface Message {
   };
   requiresContext?: boolean;
   intent?: string;
+  feedback?: 'positive' | 'negative'; // Added to store feedback
+  correction?: string; // Added to store correction text
 }
+

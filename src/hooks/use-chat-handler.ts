@@ -13,6 +13,7 @@ import { understandVoiceInput } from '@/ai/flows/understand-voice-input';
 import { speakResponse } from '@/ai/flows/speak-response';
 import { importAndProcessFile } from '@/ai/flows/import-and-process-file';
 import { analyzeInformation as analyzeInformationFlow } from '@/ai/flows/analyze-information';
+import { processUserFeedback } from '@/ai/flows/process-user-feedback';
 
 
 export function useChatHandler(currentLanguage: string) {
@@ -53,7 +54,6 @@ export function useChatHandler(currentLanguage: string) {
   const playAudioResponse = useCallback(async (text: string) => {
     if (!voiceOutputEnabled || !audioPlayerRef.current) return;
     try {
-      // Pass currentLanguage as languageCode hint for TTS
       const { audioDataUri } = await speakResponse({ text, languageCode: currentLanguage });
       audioPlayerRef.current.src = audioDataUri;
       audioPlayerRef.current.play().catch(e => console.error("Error playing audio:", e));
@@ -92,10 +92,12 @@ export function useChatHandler(currentLanguage: string) {
     try {
       const currentChat = getActiveChat();
       const conversationHistory = currentChat ? currentChat.messages.filter(m => m.id !== aiThinkingMessageId).slice(-5) : [];
+      const userQueryContext = conversationHistory.map(m => `${m.sender}: ${m.text || (m.file ? `[file: ${m.file.name}]` : "[empty message]")}`).join('\n');
+
 
       const interpretation: InterpretUserQueryOutput = await interpretUserQuery({ 
         query, 
-        context: conversationHistory.map(m => `${m.sender}: ${m.text || "file"}`).join('\n') 
+        context: userQueryContext
       });
       
       updateMessageInChat(activeChatId, aiThinkingMessageId, { intent: interpretation.intent, requiresContext: interpretation.requiresContext });
@@ -118,8 +120,7 @@ export function useChatHandler(currentLanguage: string) {
         analysisResult = { summary, keyInsights, confidenceLevel };
       } else {
         const knowledgeBase = conversationHistory.filter(m => m.sender === 'ai' && m.text).slice(-3).map(m => m.text).join('\n');
-        // Pass currentLanguage to generateHumanLikeResponse
-        const { response } = await generateHumanLikeResponse({ query: interpretation.intent, knowledgeBase, language: currentLanguage });
+        const { response } = await generateHumanLikeResponse({ query: interpretation.intent || query, knowledgeBase, language: currentLanguage });
         aiResponseText = response;
       }
       
@@ -170,10 +171,7 @@ export function useChatHandler(currentLanguage: string) {
           const audioDataUri = reader.result as string;
           setIsLoading(true); 
           try {
-            // Pass currentLanguage as languageHint for transcription
             const { transcribedText } = await understandVoiceInput({ audioDataUri, languageHint: currentLanguage });
-            // Directly call handleSendMessageCallback with the transcribed text.
-            // This will create a user message with the transcription and then the AI's response.
             await handleSendMessageCallback(transcribedText, currentFile || undefined);
           } catch (e) {
             console.error('Error transcribing voice:', e);
@@ -223,7 +221,53 @@ export function useChatHandler(currentLanguage: string) {
   
   const triggerSend = () => {
     handleSendMessageCallback(inputValue, currentFile || undefined);
-  }
+  };
+
+  const handleFeedback = useCallback(async (messageId: string, feedbackType: 'positive' | 'negative', correctionText?: string) => {
+    if (!activeChatId) {
+      toast({ title: 'Error', description: 'No active chat selected for feedback.', variant: 'destructive' });
+      return;
+    }
+
+    const messageToUpdate = messages.find(m => m.id === messageId);
+    if (!messageToUpdate || messageToUpdate.sender !== 'ai') {
+      toast({ title: 'Error', description: 'Can only provide feedback on AI messages.', variant: 'destructive' });
+      return;
+    }
+
+    // Optimistically update UI
+    updateMessageInChat(activeChatId, messageId, { feedback: feedbackType, correction: correctionText });
+
+    try {
+      const chat = getActiveChat();
+      const messageIndex = chat?.messages.findIndex(m => m.id === messageId);
+      let userQueryContext = "No preceding user message found.";
+      if (chat && messageIndex && messageIndex > 0) {
+        for (let i = messageIndex -1; i >=0; i--) {
+          if (chat.messages[i].sender === 'user') {
+            userQueryContext = chat.messages[i].text || (chat.messages[i].file ? `File: ${chat.messages[i].file?.name}` : "User initiated action");
+            break;
+          }
+        }
+      }
+
+
+      const feedbackResponse = await processUserFeedback({
+        messageId,
+        chatId: activeChatId,
+        feedbackType,
+        correctionText,
+        originalAiResponse: messageToUpdate.text,
+        userQueryContext,
+      });
+      toast({ title: 'Feedback Received', description: feedbackResponse.message });
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      // Revert optimistic update if API call fails
+      updateMessageInChat(activeChatId, messageId, { feedback: undefined, correction: undefined });
+      toast({ title: 'Feedback Error', description: 'Could not submit feedback.', variant: 'destructive' });
+    }
+  }, [activeChatId, messages, updateMessageInChat, toast, getActiveChat]);
 
   return {
     messages,
@@ -238,5 +282,7 @@ export function useChatHandler(currentLanguage: string) {
     handleSendMessage: triggerSend,
     handleVoiceInput,
     handleFileChange,
+    handleFeedback, // Export the new feedback handler
   };
 }
+

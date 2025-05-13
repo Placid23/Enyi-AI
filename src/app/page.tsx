@@ -36,6 +36,7 @@ function AetherAssistPageContent() {
     handleSendMessage,
     handleVoiceInput,
     handleFileChange,
+    handleFeedback, // Destructure handleFeedback
   } = useChatHandler(currentLanguage); 
 
   const { activeChatId, isLoadingChats } = useChat();
@@ -57,7 +58,7 @@ function AetherAssistPageContent() {
                  </div>
             ) : activeChatId ? (
               <Card className="flex flex-col flex-grow shadow-xl rounded-xl overflow-hidden border border-border/30 bg-card backdrop-blur-md">
-                <ConversationView messages={messages} />
+                <ConversationView messages={messages} onFeedback={handleFeedback} /> {/* Pass handleFeedback */}
                 <QueryInput
                   inputValue={inputValue}
                   onInputChange={setInputValue}
