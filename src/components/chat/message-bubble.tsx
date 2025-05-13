@@ -171,7 +171,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
       </Card>
       {isUser && (
          <Avatar className="h-10 w-10 border-2 border-accent/40 shadow-sm">
-          <AvatarFallback className="bg-gradient-to-br from-accent to-pink-500 text-accent-foreground">
+          <AvatarFallback className="bg-gradient-to-br from-accent to-accent/70 text-accent-foreground"> {/* Changed to-pink-500 to to-accent/70 */}
             <User size={22} />
           </AvatarFallback>
         </Avatar>

@@ -25,8 +25,8 @@ export default function AetherAssistPage() {
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-background via-background to-secondary/20 text-foreground">
       <AppHeader />
-      <main className="flex-grow flex flex-col overflow-hidden container mx-auto max-w-4xl w-full py-6 px-4"> {/* Added px-4 for consistency and slight increase in py */}
-        <Card className="flex flex-col flex-grow shadow-2xl rounded-xl overflow-hidden border border-border/50"> {/* Enhanced shadow and added subtle border */}
+      <main className="flex-grow flex flex-col overflow-hidden container mx-auto max-w-4xl w-full py-6 px-4">
+        <Card className="flex flex-col flex-grow shadow-2xl rounded-lg overflow-hidden border border-border/50"> {/* Changed rounded-xl to rounded-lg */}
           <ConversationView messages={messages} />
           <QueryInput
             inputValue={inputValue}
@@ -43,7 +43,7 @@ export default function AetherAssistPage() {
           />
         </Card>
       </main>
-      <footer className="text-center py-3 text-xs text-muted-foreground"> {/* Increased py slightly */}
+      <footer className="text-center py-3 text-xs text-muted-foreground">
         AetherAssist &copy; {new Date().getFullYear()}
       </footer>
     </div>
