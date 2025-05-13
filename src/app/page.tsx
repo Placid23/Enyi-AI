@@ -6,17 +6,20 @@ import ConversationView from '@/components/chat/conversation-view';
 import QueryInput from '@/components/chat/query-input';
 import { useChatHandler } from '@/hooks/use-chat-handler';
 import { Card } from '@/components/ui/card';
-import AppSidebar from '@/components/layout/app-sidebar';
+import AppSidebar from '@/components/layout/app-sidebar'; // Corrected import path
 import { ChatProvider, useChat } from '@/context/chat-context';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'; 
 import { Loader2 } from 'lucide-react';
+import React from 'react'; // Imported React for useState
 
 function AetherAssistPageContent() {
+  const [currentLanguage, setCurrentLanguage] = React.useState<string>('en'); // 'en', 'zh-CN', 'pcm'
+
   const {
     messages,
     inputValue,
     setInputValue,
-    isLoading: isSendingMessage, // Renamed to avoid conflict with isLoadingChats
+    isLoading: isSendingMessage, 
     isRecording,
     voiceOutputEnabled,
     setVoiceOutputEnabled,
@@ -25,7 +28,7 @@ function AetherAssistPageContent() {
     handleSendMessage,
     handleVoiceInput,
     handleFileChange,
-  } = useChatHandler();
+  } = useChatHandler(currentLanguage); // Pass currentLanguage
 
   const { activeChatId, isLoadingChats } = useChat();
 
@@ -33,8 +36,8 @@ function AetherAssistPageContent() {
     <SidebarProvider defaultOpen={true}> 
       <div className="flex h-screen bg-gradient-to-br from-background via-background to-secondary/20 text-foreground overflow-hidden">
         <AppSidebar />
-        <SidebarInset className="flex flex-col flex-1 overflow-hidden"> {/* Use SidebarInset for main content area */}
-          <AppHeader />
+        <SidebarInset className="flex flex-col flex-1 overflow-hidden">
+          <AppHeader currentLanguage={currentLanguage} onLanguageChange={setCurrentLanguage} />
           <main className="flex-grow flex flex-col overflow-hidden container mx-auto max-w-5xl w-full py-4 px-2 sm:px-4">
             {isLoadingChats ? (
                  <div className="flex-grow flex items-center justify-center">

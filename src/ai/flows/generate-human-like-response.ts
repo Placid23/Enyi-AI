@@ -14,6 +14,7 @@ import {z} from 'genkit';
 const GenerateHumanLikeResponseInputSchema = z.object({
   query: z.string().describe('The interpreted user query.'),
   knowledgeBase: z.string().optional().describe('The knowledge base to use for generating the response.'),
+  language: z.string().optional().describe('The target language for the response (e.g., "en", "zh-CN", "pcm"). Default is English.'),
 });
 export type GenerateHumanLikeResponseInput = z.infer<typeof GenerateHumanLikeResponseInputSchema>;
 
@@ -31,14 +32,16 @@ const prompt = ai.definePrompt({
   input: {schema: GenerateHumanLikeResponseInputSchema},
   output: {schema: GenerateHumanLikeResponseOutputSchema},
   prompt: `You are an AI assistant designed to provide human-like responses to user queries.
+{{#if language}}Your response MUST be in the language specified: {{language}}. For example, if 'zh-CN', respond in Chinese. If 'pcm', respond in Nigerian Pidgin. If 'en', respond in English.{{else}}Respond in English.{{/if}}
 
-  Query: {{{query}}}
+Query: {{{query}}}
 
-  {{#if knowledgeBase}}
-  Knowledge Base: {{{knowledgeBase}}}
-  {{\/if}}
+{{#if knowledgeBase}}
+Consider this information from our previous conversation:
+{{{knowledgeBase}}}
+{{\/if}}
 
-  Generate a response that is natural, helpful, and relevant to the query.
+Generate a response that is natural, helpful, and relevant to the query in the specified language.
   `,
 });
 

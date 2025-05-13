@@ -13,6 +13,7 @@ import {z} from 'genkit';
 
 const SpeakResponseInputSchema = z.object({
   text: z.string().describe('The text to be converted to speech.'),
+  languageCode: z.string().optional().describe('BCP-47 language code for the speech, e.g., "en-US", "cmn-CN", "pcm". Helps ensure correct pronunciation and voice if the model supports it.'),
 });
 export type SpeakResponseInput = z.infer<typeof SpeakResponseInputSchema>;
 
@@ -36,39 +37,35 @@ const speakResponseFlow = ai.defineFlow(
     outputSchema: SpeakResponseOutputSchema,
   },
   async input => {
-    const {text} = input;
+    const {text, languageCode} = input; // languageCode is available if needed by a specific model config
 
-    // Use Genkit's generate functionality.
-    // NOTE: The model 'googleai/gemini-2.0-flash-exp' is an image generation model.
-    // It is NOT suitable for text-to-speech. This flow will likely not produce audible speech.
-    // The comment below is misleading.
-    // "This model is used because it can generate audio as well as text. Must provide TEXT and IMAGE." - This is incorrect.
-    const generationResult = await ai.generate({
-      model: 'googleai/gemini-2.0-flash-exp',
-      prompt: text,
+    // Use Genkit's generate functionality with a model capable of audio output.
+    // The language of the generated audio is primarily determined by the language of the input 'text'.
+    // The 'languageCode' parameter is included in the schema for completeness and potential future use
+    // with models or configurations that explicitly use it.
+    const {audio} = await ai.generate({
+      model: 'googleai/gemini-1.5-flash-latest', // Ensure this model supports audio generation
+      prompt: text, // The text to be spoken, already in the target language
       config: {
-        // Requesting TEXT and IMAGE modalities, though for TTS, AUDIO would be expected.
-        responseModalities: ['TEXT', 'IMAGE'],
+        responseModalities: ['AUDIO'],
+        // If the specific model/plugin supported an explicit language parameter for audio generation,
+        // it would be configured here, potentially using `languageCode`.
+        // e.g., ...(languageCode && { ttsLanguage: languageCode })
       },
     });
 
-    const mediaOutput = generationResult.media;
+    const audioOutputUrl = audio?.url;
 
-    if (!mediaOutput?.url) {
-      // Log the entire result for debugging if media or URL is missing.
+    if (!audioOutputUrl) {
       console.error(
-        'Text-to-Speech Error: No media URL found in generation result. This is expected as an image generation model is used. Full result:',
-        JSON.stringify(generationResult, null, 2)
+        'Text-to-Speech Error: No audio URL found in generation result. Input text was: "${text}". Language code hint: "${languageCode}". Full result:',
+        JSON.stringify(audio, null, 2)
       );
-      // The flow's contract is to return an audioDataUri. 
-      // Returning a placeholder silent audio URI to satisfy schema and prevent throwing error.
-      // Actual TTS functionality is not working with the current model.
-      return { audioDataUri: 'data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA' }; // Placeholder: 1-byte silent WAV
+      throw new Error(
+        'Failed to generate audio data for speech output. The AI model did not return the expected audio content.'
+      );
     }
-
-    // Assuming mediaOutput.url would be the audio data URI if the model supported TTS.
-    // For 'gemini-2.0-flash-exp', this URL will point to an image if generation was successful.
-    return {audioDataUri: mediaOutput.url};
+    
+    return {audioDataUri: audioOutputUrl};
   }
 );
-

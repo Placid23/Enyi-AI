@@ -16,6 +16,7 @@ const UnderstandVoiceInputInputSchema = z.object({
     .describe(
       "Audio data as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
+  languageHint: z.string().optional().describe('A BCP-47 language code hint for transcription (e.g., "en-US", "zh-CN", "pcm").'),
 });
 export type UnderstandVoiceInputInput = z.infer<typeof UnderstandVoiceInputInputSchema>;
 
@@ -32,7 +33,8 @@ const prompt = ai.definePrompt({
   name: 'understandVoiceInputPrompt',
   input: {schema: UnderstandVoiceInputInputSchema},
   output: {schema: UnderstandVoiceInputOutputSchema},
-  prompt: `Transcribe the following audio data to text:
+  prompt: `Transcribe the following audio data to text.
+{{#if languageHint}}The primary language spoken is likely {{languageHint}}. Please prioritize this language in your transcription.{{/if}}
 
 Audio: {{media url=audioDataUri}}`,
 });
