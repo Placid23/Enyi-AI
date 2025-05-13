@@ -11,7 +11,7 @@ import {
   SidebarMenuButton,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, Trash2, Loader2, BrainCircuit } from 'lucide-react'; // Added BrainCircuit, removed PlusCircle
+import { MessageSquare, Trash2, Loader2, BrainCircuit } from 'lucide-react';
 import { useChat, type Chat } from '@/context/chat-context';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -52,15 +52,15 @@ const AppSidebar: React.FC = () => {
       collapsible="icon" 
       className="border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-lg transition-all duration-300 ease-in-out"
     >
-      <SidebarHeader className="p-3"> {/* Removed border-b border-sidebar-border */}
+      <SidebarHeader className="p-3 h-16 flex items-center"> 
         <Button
           onClick={handleCreateNewChat}
           variant="ghost"
-          className="w-full h-auto py-2.5 px-2 flex items-center justify-start space-x-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group"
+          className="w-full h-10 py-2 px-3 flex items-center justify-start space-x-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group rounded-lg"
           aria-label="New Chat"
         >
-          <BrainCircuit className="h-7 w-7 text-sidebar-primary group-hover:text-sidebar-accent-foreground transition-colors shrink-0" />
-          <span className="text-lg font-semibold group-data-[state=expanded]:opacity-100 group-data-[state=collapsed]:opacity-0 transition-opacity duration-200">
+          <BrainCircuit className="h-6 w-6 text-sidebar-primary group-hover:text-sidebar-accent-foreground transition-colors shrink-0" />
+          <span className="text-md font-medium group-data-[state=expanded]:opacity-100 group-data-[state=collapsed]:opacity-0 transition-opacity duration-200">
             New Chat
           </span>
         </Button>
@@ -72,8 +72,8 @@ const AppSidebar: React.FC = () => {
               <Loader2 className="h-8 w-8 animate-spin text-sidebar-primary" />
             </div>
           ) : sortedChats.length === 0 ? (
-            <div className="p-4 text-center text-sidebar-foreground/70 group-data-[state=expanded]:opacity-100 group-data-[state=collapsed]:opacity-0 transition-opacity duration-200">
-              <MessageSquare className="mx-auto h-10 w-10 mb-2 opacity-50" />
+            <div className="p-4 pt-8 text-center text-sidebar-foreground/60 group-data-[state=expanded]:opacity-100 group-data-[state=collapsed]:opacity-0 transition-opacity duration-200">
+              <MessageSquare className="mx-auto h-12 w-12 mb-3 opacity-40" />
               No chats yet. <br />
               Start a new one!
             </div>
@@ -85,10 +85,10 @@ const AppSidebar: React.FC = () => {
                     onClick={() => setActiveChatId(chat.id)}
                     isActive={activeChatId === chat.id}
                     className={cn(
-                      "w-full justify-start text-sm h-auto py-2.5 px-3 group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:py-3 group-data-[state=collapsed]:px-0",
+                      "w-full justify-start text-sm h-auto py-2.5 px-3 rounded-md group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:py-3 group-data-[state=collapsed]:px-0",
                       activeChatId === chat.id
-                        ? 'bg-sidebar-accent text-sidebar-accent-foreground font-semibold'
-                        : 'text-sidebar-foreground/80 hover:bg-sidebar-accent/80 hover:text-sidebar-accent-foreground',
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-semibold shadow-sm'
+                        : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
                     )}
                     tooltip={{
                       children: chat.title,
@@ -98,17 +98,17 @@ const AppSidebar: React.FC = () => {
                     }}
                   >
                     <MessageSquare className="h-5 w-5 shrink-0 group-data-[state=collapsed]:h-6 group-data-[state=collapsed]:w-6" />
-                    <span className="truncate group-data-[state=expanded]:opacity-100 group-data-[state=collapsed]:hidden transition-opacity duration-200 flex-1 text-left ml-2">
+                    <span className="truncate group-data-[state=expanded]:opacity-100 group-data-[state=collapsed]:hidden transition-opacity duration-200 flex-1 text-left ml-2.5">
                       {chat.title}
                     </span>
                   </SidebarMenuButton>
-                  <div className="absolute right-1 top-1/2 -translate-y-1/2 group-data-[state=expanded]:opacity-100 group-data-[state=collapsed]:hidden group-hover/item:opacity-100 md:opacity-0 focus-within:opacity-100 transition-opacity duration-200">
+                  <div className="absolute right-1.5 top-1/2 -translate-y-1/2 group-data-[state=expanded]:opacity-100 group-data-[state=collapsed]:hidden group-hover/item:opacity-100 md:opacity-0 focus-within:opacity-100 transition-opacity duration-200">
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 text-sidebar-foreground/60 hover:text-destructive hover:bg-destructive/10"
+                          className="h-7 w-7 text-sidebar-foreground/50 hover:text-destructive hover:bg-destructive/10 rounded-md"
                           onClick={(e) => e.stopPropagation()} 
                           aria-label={`Delete chat ${chat.title}`}
                         >
