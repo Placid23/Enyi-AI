@@ -15,7 +15,7 @@ interface QueryInputProps {
   onSendMessage: () => void;
   onVoiceInput: () => void;
   onFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onImageGeneratorClick: () => void; // New prop
+  onImageGeneratorClick: () => void;
   isRecording: boolean;
   isLoading: boolean;
   currentFile: FileAttachment | null;
@@ -30,7 +30,7 @@ const QueryInput: React.FC<QueryInputProps> = ({
   onSendMessage,
   onVoiceInput,
   onFileChange,
-  onImageGeneratorClick, // New prop
+  onImageGeneratorClick,
   isRecording,
   isLoading,
   currentFile,
@@ -66,13 +66,13 @@ const QueryInput: React.FC<QueryInputProps> = ({
           </Button>
         </div>
       )}
-      <div className="flex items-end space-x-2.5">
+      <div className="flex items-end space-x-2"> {/* Reduced space from space-x-2.5 */}
         <Textarea
           value={inputValue}
           onChange={(e) => onInputChange(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder="Type your message or ask anything..."
-          className="flex-grow resize-none rounded-xl shadow-sm focus:ring-2 focus:ring-primary border-border/60 min-h-[48px] max-h-[150px] text-base p-3.5"
+          className="flex-grow resize-none rounded-xl shadow-sm focus:ring-2 focus:ring-primary border-border/60 min-h-[44px] max-h-[150px] text-base p-3" // Adjusted min-height and padding
           rows={1}
           disabled={isLoading || isRecording}
         />
@@ -82,7 +82,7 @@ const QueryInput: React.FC<QueryInputProps> = ({
           onClick={() => fileInputRef.current?.click()}
           disabled={isLoading || isRecording}
           aria-label="Attach file"
-          className="text-muted-foreground hover:text-primary rounded-full h-12 w-12" 
+          className="text-muted-foreground hover:text-primary rounded-full h-10 w-10"  // Standardized size
         >
           <Paperclip className="h-5 w-5" />
         </Button>
@@ -96,10 +96,10 @@ const QueryInput: React.FC<QueryInputProps> = ({
         <Button
           variant="ghost"
           size="icon"
-          onClick={onImageGeneratorClick} // Call new handler
+          onClick={onImageGeneratorClick}
           disabled={isLoading || isRecording}
           aria-label="Generate Image"
-          className="text-muted-foreground hover:text-primary rounded-full h-12 w-12"
+          className="text-muted-foreground hover:text-primary rounded-full h-10 w-10" // Standardized size
         >
           <ImageIcon className="h-5 w-5" />
         </Button>
@@ -110,7 +110,7 @@ const QueryInput: React.FC<QueryInputProps> = ({
           disabled={isLoading}
           aria-label={isRecording ? "Stop recording" : "Start voice input"}
           className={cn(
-            "rounded-full h-12 w-12",
+            "rounded-full h-10 w-10", // Standardized size
             isRecording ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground" : "text-muted-foreground hover:text-primary"
           )}
         >
@@ -121,14 +121,14 @@ const QueryInput: React.FC<QueryInputProps> = ({
           size="icon"
           onClick={toggleVoiceOutput}
           aria-label={voiceOutputEnabled ? "Disable voice output" : "Enable voice output"}
-          className="text-muted-foreground hover:text-primary rounded-full h-12 w-12"
+          className="text-muted-foreground hover:text-primary rounded-full h-10 w-10" // Standardized size
         >
           {voiceOutputEnabled ? <Volume2 className="h-5 w-5 text-primary" /> : <VolumeX className="h-5 w-5" />}
         </Button>
         <Button
           onClick={handleSend}
           disabled={isLoading || isRecording || (!inputValue.trim() && !currentFile)}
-          className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-full h-12 w-12 p-0 flex items-center justify-center shadow-md"
+          className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-full h-10 w-10 p-0 flex items-center justify-center shadow-md" // Standardized size
           aria-label="Send message"
         >
           {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}

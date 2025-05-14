@@ -103,7 +103,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onFeedback }) =>
             : 'bg-card text-card-foreground rounded-bl-lg border border-border/50' 
         )}
       >
-        <CardContent className="p-3.5 space-y-2.5 text-sm">
+        <CardContent className="p-4 space-y-2.5 text-sm"> {/* Increased padding from p-3.5 to p-4 */}
           {isCorrecting ? (
             <div className="space-y-2">
               <Textarea
@@ -118,13 +118,16 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onFeedback }) =>
                 <Button variant="outline" size="sm" onClick={handleSubmitCorrection} className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">Save Correction</Button>
               </div>
             </div>
-          ) : message.text && (
+          ) : message.text ? ( // Check if message.text exists before rendering
             <p className="whitespace-pre-wrap break-words leading-relaxed">{message.text}</p>
-          )}
+          ) : message.streamedText ? ( // Render streamedText if text is not yet final
+            <p className="whitespace-pre-wrap break-words leading-relaxed">{message.streamedText}</p>
+          ): null }
+
           {message.file && (
             <div className={cn(
               "mt-2.5 p-3 border rounded-lg",
-              isUser ? "border-primary-foreground/20 bg-primary/90" : "border-border bg-secondary text-secondary-foreground"
+              isUser ? "border-primary-foreground/20 bg-primary/90" : "border-border bg-secondary/70 text-secondary-foreground" // Slightly more subtle bg for AI file
             )}>
               {isImageFile ? (
                 <Image
@@ -203,7 +206,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onFeedback }) =>
                 <span>An error occurred. Please try again.</span>
             </div>
           )}
-          {message.isLoading && (
+          {message.isLoading && !message.streamedText && ( // Only show "Enyi is thinking..." if not streaming
             <div className={cn(
                 "flex items-center space-x-2 text-xs mt-1",
                 isUser ? "text-primary-foreground/80" : "text-muted-foreground"
@@ -248,23 +251,26 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onFeedback }) =>
             )}
           </div>
         )}
-        {!message.isLoading && isUser && (
+        {/* Show timestamp for user messages or AI messages that are fully loaded and not streaming */}
+        {((isUser && !message.isLoading) || (!isUser && !message.isLoading && !message.streamedText)) && (
            <CardFooter 
             className={cn(
-              "px-3.5 pb-2 pt-1 text-xs flex items-center justify-between", 
-              isUser ? "text-primary-foreground/70" : "text-muted-foreground"
+              "px-3.5 pb-2 pt-1 text-xs flex items-center", 
+              isUser ? "text-primary-foreground/70 justify-end" : "text-muted-foreground justify-start" // AI timestamp aligned left if no feedback buttons
             )}
           >
             <span>{new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+            {/* Optional: Add intent/context toggle for user messages too if needed, or keep it AI-only */}
           </CardFooter>
         )}
 
-         {showDetails && (message.intent || message.requiresContext) && !isCorrecting && (
+
+         {showDetails && (message.intent || message.requiresContext) && !isCorrecting && !isUser && ( // Show details only for AI messages
             <CardContent className="px-3.5 pb-3 pt-1 border-t text-xs"
-              style={{borderColor: isUser ? 'hsla(var(--primary-foreground-hsl), 0.3)' : 'hsl(var(--border))'}}
+              style={{borderColor: 'hsl(var(--border))'}}
             >
-                {message.intent && <p className={cn("italic", isUser ? "text-primary-foreground/90" : "text-muted-foreground")}><strong>Intent:</strong> {message.intent}</p>}
-                {message.requiresContext && <p className={cn("italic", isUser ? "text-primary-foreground/90" : "text-muted-foreground")}>Query may require more context.</p>}
+                {message.intent && <p className="italic text-muted-foreground"><strong>Intent:</strong> {message.intent}</p>}
+                {message.requiresContext && <p className="italic text-muted-foreground">Query may require more context.</p>}
             </CardContent>
         )}
       </Card>
@@ -280,4 +286,3 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onFeedback }) =>
 };
 
 export default MessageBubble;
-
