@@ -21,7 +21,16 @@ export interface Message {
   };
   requiresContext?: boolean;
   intent?: string;
-  feedback?: 'positive' | 'negative'; // Added to store feedback
-  correction?: string; // Added to store correction text
+  feedback?: 'positive' | 'negative';
+  correction?: string;
+  streamedText?: string; // For streaming text
 }
 
+// New Type for Image History
+export interface ImageHistoryEntry {
+  id: string;
+  prompt: string;
+  imageDataUri: string;
+  revisedPrompt?: string;
+  timestamp: Date;
+}

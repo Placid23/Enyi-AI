@@ -9,10 +9,10 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarFooter, 
+  // SidebarFooter, // Removed as per user request to remove footer
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, Trash2, Loader2, BrainCircuit, Wrench } from 'lucide-react'; 
+import { MessageSquare, Trash2, Loader2, BrainCircuit, Wrench, Images } from 'lucide-react'; // Added Images
 import { useChat, type Chat } from '@/context/chat-context';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -28,7 +28,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import Link from 'next/link';
-
+import { usePathname } from 'next/navigation'; // To highlight active link
 
 const AppSidebar: React.FC = () => {
   const {
@@ -39,8 +39,16 @@ const AppSidebar: React.FC = () => {
     deleteChat,
     isLoadingChats,
   } = useChat();
+  const pathname = usePathname(); // Get current path
 
   const handleCreateNewChat = async () => {
+    // Navigate to main page if not already there when creating new chat
+    if (pathname !== '/') {
+      // Using next/link's functionality via asChild on Button or direct router.push
+      // For simplicity here, we assume setActiveChatId might trigger a redirect or page change implicitly if needed,
+      // or the user is expected to be on "/" to interact with chats.
+      // If explicit navigation is needed: router.push('/');
+    }
     await createNewChat();
   };
 
@@ -52,20 +60,20 @@ const AppSidebar: React.FC = () => {
 
   return (
     <Sidebar
-      variant="sidebar" 
-      collapsible="icon" 
-      className="border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-lg transition-all duration-300 ease-in-out"
+      variant="sidebar"
+      collapsible="icon"
+      className="border-r-0 bg-sidebar text-sidebar-foreground shadow-lg transition-all duration-300 ease-in-out"
     >
-      <SidebarHeader className="p-3 h-16 flex items-center"> 
+      <SidebarHeader className="p-0 h-auto flex items-center border-b-0">
         <Button
           onClick={handleCreateNewChat}
           variant="ghost"
-          className="w-full h-10 py-2 px-3 flex items-center justify-start space-x-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group rounded-lg"
+          className="w-full h-16 py-2 px-3 flex items-center justify-start space-x-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group rounded-none"
           aria-label="New Chat"
         >
-          <BrainCircuit className="h-6 w-6 text-sidebar-primary group-hover:text-sidebar-accent-foreground transition-colors shrink-0" />
-          <span className="text-md font-medium group-data-[state=expanded]:opacity-100 group-data-[state=collapsed]:opacity-0 transition-opacity duration-200">
-            New Chat
+          <BrainCircuit className="h-7 w-7 text-sidebar-primary group-hover:text-sidebar-accent-foreground transition-colors shrink-0 ml-1" />
+          <span className="text-lg font-semibold group-data-[state=expanded]:opacity-100 group-data-[state=collapsed]:opacity-0 transition-opacity duration-200">
+            Enyi
           </span>
         </Button>
       </SidebarHeader>
@@ -81,15 +89,18 @@ const AppSidebar: React.FC = () => {
                  <SidebarMenuItem>
                     <SidebarMenuButton
                         asChild
+                        isActive={pathname === '/tools'} // Highlight if active
                         className={cn(
                         "w-full justify-start text-sm h-auto py-2.5 px-3 rounded-md group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:py-3 group-data-[state=collapsed]:px-0",
-                        'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+                         pathname === '/tools'
+                            ? 'bg-sidebar-primary text-sidebar-primary-foreground font-semibold shadow-sm'
+                            : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
                         )}
                          tooltip={{
                             children: "Tools",
                             side: "right",
                             align: "center",
-                            className: "ml-2" 
+                            className: "ml-2"
                         }}
                     >
                         <Link href="/tools">
@@ -100,8 +111,34 @@ const AppSidebar: React.FC = () => {
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <SidebarMenuButton
+                        asChild
+                        isActive={pathname === '/image-history'} // Highlight if active
+                        className={cn(
+                        "w-full justify-start text-sm h-auto py-2.5 px-3 rounded-md group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:py-3 group-data-[state=collapsed]:px-0",
+                         pathname === '/image-history'
+                            ? 'bg-sidebar-primary text-sidebar-primary-foreground font-semibold shadow-sm'
+                            : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+                        )}
+                         tooltip={{
+                            children: "Image History",
+                            side: "right",
+                            align: "center",
+                            className: "ml-2"
+                        }}
+                    >
+                        <Link href="/image-history">
+                            <Images className="h-5 w-5 shrink-0 group-data-[state=collapsed]:h-6 group-data-[state=collapsed]:w-6" />
+                            <span className="truncate group-data-[state=expanded]:opacity-100 group-data-[state=collapsed]:hidden transition-opacity duration-200 flex-1 text-left ml-2.5">
+                                Image History
+                            </span>
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
               </SidebarMenu>
               {sortedChats.length === 0 && !isLoadingChats && (
+                 pathname === '/' && // Only show "No chats yet" if on the main chat page
                 <div className="p-4 pt-8 text-center text-sidebar-foreground/60 group-data-[state=expanded]:opacity-100 group-data-[state=collapsed]:opacity-0 transition-opacity duration-200">
                   <MessageSquare className="mx-auto h-12 w-12 mb-3 opacity-40" />
                   No chats yet. <br />
@@ -110,14 +147,22 @@ const AppSidebar: React.FC = () => {
               )}
               {sortedChats.length > 0 && (
                  <SidebarMenu className="p-2 space-y-1">
+                  <div className="px-3 pt-2 pb-1 group-data-[state=expanded]:opacity-100 group-data-[state=collapsed]:opacity-0 transition-opacity duration-200">
+                    <p className="text-xs font-medium text-sidebar-foreground/60">Chat History</p>
+                  </div>
                   {sortedChats.map((chat: Chat) => (
                     <SidebarMenuItem key={chat.id} className="relative group/item">
                       <SidebarMenuButton
-                        onClick={() => setActiveChatId(chat.id)}
-                        isActive={activeChatId === chat.id}
+                        onClick={() => {
+                           if (pathname !== '/') {
+                             // Implement navigation to '/' if needed, e.g., router.push('/');
+                           }
+                           setActiveChatId(chat.id);
+                        }}
+                        isActive={activeChatId === chat.id && pathname === '/'} // Only active if on main page and chat matches
                         className={cn(
                           "w-full justify-start text-sm h-auto py-2.5 px-3 rounded-md group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:py-3 group-data-[state=collapsed]:px-0",
-                          activeChatId === chat.id
+                          activeChatId === chat.id && pathname === '/'
                             ? 'bg-sidebar-primary text-sidebar-primary-foreground font-semibold shadow-sm'
                             : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
                         )}
@@ -125,7 +170,7 @@ const AppSidebar: React.FC = () => {
                           children: chat.title,
                           side: "right",
                           align: "center",
-                          className: "ml-2" 
+                          className: "ml-2"
                         }}
                       >
                         <MessageSquare className="h-5 w-5 shrink-0 group-data-[state=collapsed]:h-6 group-data-[state=collapsed]:w-6" />
@@ -140,7 +185,7 @@ const AppSidebar: React.FC = () => {
                               variant="ghost"
                               size="icon"
                               className="h-7 w-7 text-sidebar-foreground/50 hover:text-destructive hover:bg-destructive/10 rounded-md"
-                              onClick={(e) => e.stopPropagation()} 
+                              onClick={(e) => e.stopPropagation()}
                               aria-label={`Delete chat ${chat.title}`}
                             >
                               <Trash2 className="h-4 w-4" />
@@ -176,13 +221,14 @@ const AppSidebar: React.FC = () => {
           )}
         </ScrollArea>
       </SidebarContent>
-      <SidebarFooter className="p-3 border-t border-sidebar-border mt-auto">
+      <div className="p-3 border-t border-sidebar-border mt-auto">
         <div className="text-xs text-sidebar-foreground/60 text-center group-data-[state=expanded]:opacity-100 group-data-[state=collapsed]:opacity-0 transition-opacity duration-200">
           Enyi AI &copy; {currentYear}
         </div>
-      </SidebarFooter>
+      </div>
     </Sidebar>
   );
 };
 
 export default AppSidebar;
+

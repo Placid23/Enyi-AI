@@ -4,6 +4,7 @@
 import AppHeader from '@/components/layout/app-header';
 import AppSidebar from '@/components/layout/app-sidebar';
 import { ChatProvider } from '@/context/chat-context';
+import { ImageHistoryProvider } from '@/context/image-history-context'; // Import new provider
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import React, { useState } from 'react';
 import { AppSettingsProvider, useAppSettings } from '@/context/app-settings-context';
@@ -25,34 +26,36 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
     // ChatProvider can be here or wrap AppSettingsProvider in the main export,
     // depending on whether ChatProvider needs access to app settings or vice-versa.
     // For simplicity, keeping it here.
-    <ChatProvider>
-      <SidebarProvider defaultOpen={true}>
-        <div className="flex h-screen bg-background text-foreground overflow-hidden">
-          <AppSidebar />
-          <SidebarInset className="flex flex-col flex-1 overflow-hidden">
-            <AppHeader
-              currentLanguage={currentLanguage}
-              onLanguageChange={setCurrentLanguage}
-              onFacialSentimentClick={() => setIsFacialSentimentDialogOpen(true)}
-            />
-            <main className="flex-grow flex flex-col overflow-hidden">
-              {children}
-            </main>
-          </SidebarInset>
-        </div>
-        <Dialog open={isFacialSentimentDialogOpen} onOpenChange={setIsFacialSentimentDialogOpen}>
-          <DialogContent className="sm:max-w-[480px]">
-            <DialogHeader>
-              <DialogTitle>Facial Sentiment Analysis</DialogTitle>
-              <DialogDescription>
-                Allow camera access, position your face in the view, and click "Analyze Sentiment".
-              </DialogDescription>
-            </DialogHeader>
-            <FacialSentimentAnalyzer />
-          </DialogContent>
-        </Dialog>
-      </SidebarProvider>
-    </ChatProvider>
+    <ImageHistoryProvider> {/* Wrap with ImageHistoryProvider */}
+      <ChatProvider>
+        <SidebarProvider defaultOpen={true}>
+          <div className="flex h-screen bg-background text-foreground overflow-hidden">
+            <AppSidebar />
+            <SidebarInset className="flex flex-col flex-1 overflow-hidden">
+              <AppHeader
+                currentLanguage={currentLanguage}
+                onLanguageChange={setCurrentLanguage}
+                onFacialSentimentClick={() => setIsFacialSentimentDialogOpen(true)}
+              />
+              <main className="flex-grow flex flex-col overflow-hidden">
+                {children}
+              </main>
+            </SidebarInset>
+          </div>
+          <Dialog open={isFacialSentimentDialogOpen} onOpenChange={setIsFacialSentimentDialogOpen}>
+            <DialogContent className="sm:max-w-[480px]">
+              <DialogHeader>
+                <DialogTitle>Facial Sentiment Analysis</DialogTitle>
+                <DialogDescription>
+                  Allow camera access, position your face in the view, and click "Analyze Sentiment".
+                </DialogDescription>
+              </DialogHeader>
+              <FacialSentimentAnalyzer />
+            </DialogContent>
+          </Dialog>
+        </SidebarProvider>
+      </ChatProvider>
+    </ImageHistoryProvider>
   );
 }
 

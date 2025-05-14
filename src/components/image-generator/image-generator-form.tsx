@@ -9,9 +9,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from '@/hooks/use-toast';
 import { generateImage } from '@/ai/flows/generate-image-flow';
 import type { GenerateImageOutput } from '@/ai/flows/generate-image-flow';
-import { Loader2, ImageIcon, AlertTriangle } from 'lucide-react';
+import { Loader2, ImageIcon as ImageIconLucide, AlertTriangle } from 'lucide-react'; // Renamed to avoid conflict
 import Image from 'next/image';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useImageHistory } from '@/context/image-history-context'; // Import image history context
 
 export default function ImageGeneratorForm() {
   const [prompt, setPrompt] = useState('');
@@ -19,6 +20,7 @@ export default function ImageGeneratorForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { addImageToHistory } = useImageHistory(); // Use image history hook
 
   const handleGenerateImage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +35,7 @@ export default function ImageGeneratorForm() {
 
     setIsLoading(true);
     setError(null);
-    setGeneratedImage(null); // Clear previous image while loading new one
+    setGeneratedImage(null);
 
     try {
       const result = await generateImage({ prompt });
@@ -41,6 +43,12 @@ export default function ImageGeneratorForm() {
       toast({
         title: 'Image Generated!',
         description: result.revisedPrompt || `Successfully generated image for: ${prompt}`,
+      });
+      // Add to image history
+      addImageToHistory({
+        prompt,
+        imageDataUri: result.imageDataUri,
+        revisedPrompt: result.revisedPrompt,
       });
     } catch (err) {
       console.error('Error generating image:', err);
@@ -61,7 +69,7 @@ export default function ImageGeneratorForm() {
       <Card className="shadow-none border-0">
         <CardHeader className="px-1 pt-2 pb-4">
           <div className="flex items-center space-x-2 mb-1">
-            <ImageIcon className="h-6 w-6 text-primary" />
+            <ImageIconLucide className="h-6 w-6 text-primary" />
             <CardTitle className="text-xl font-semibold text-foreground">AI Image Generator</CardTitle>
           </div>
           <CardDescription className="text-sm">
