@@ -28,7 +28,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import Link from 'next/link';
-import { usePathname } from 'next/navigation'; // To highlight active link
+import { usePathname, useRouter } from 'next/navigation'; // To highlight active link & for navigation
 
 const AppSidebar: React.FC = () => {
   const {
@@ -40,16 +40,14 @@ const AppSidebar: React.FC = () => {
     isLoadingChats,
   } = useChat();
   const pathname = usePathname(); // Get current path
+  const router = useRouter(); // Get router instance
 
   const handleCreateNewChat = async () => {
-    // Navigate to main page if not already there when creating new chat
+    const newChatId = await createNewChat(); // This will set the new chat active
     if (pathname !== '/') {
-      // Using next/link's functionality via asChild on Button or direct router.push
-      // For simplicity here, we assume setActiveChatId might trigger a redirect or page change implicitly if needed,
-      // or the user is expected to be on "/" to interact with chats.
-      // If explicit navigation is needed: router.push('/');
+      router.push('/');
     }
-    await createNewChat();
+    // setActiveChatId is handled by createNewChat
   };
 
   const sortedChats = React.useMemo(() => {
@@ -155,7 +153,7 @@ const AppSidebar: React.FC = () => {
                       <SidebarMenuButton
                         onClick={() => {
                            if (pathname !== '/') {
-                             // Implement navigation to '/' if needed, e.g., router.push('/');
+                             router.push('/');
                            }
                            setActiveChatId(chat.id);
                         }}
