@@ -19,7 +19,7 @@ function EnyiPageContent() {
     messages,
     inputValue,
     setInputValue,
-    isGeneratingResponse, // Renamed from isLoading for clarity
+    isGeneratingResponse, 
     isRecording,
     voiceOutputEnabled,
     setVoiceOutputEnabled,
@@ -31,7 +31,7 @@ function EnyiPageContent() {
     handleFeedback,
     handleRegenerateLastResponse,
     lastUserMessageDetails,
-    abortController,
+    abortControllerRef,
     handleStopGenerating,
   } = useChatHandler(currentLanguage); 
 
@@ -49,12 +49,12 @@ function EnyiPageContent() {
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
           </div>
         ) : activeChatId ? (
-          <Card className="flex flex-col flex-grow shadow-xl rounded-none sm:rounded-xl overflow-hidden border-0 sm:border border-border/30 bg-card backdrop-blur-md"> {/* Removed h-full */}
+          <Card className="flex flex-col flex-grow shadow-xl rounded-none sm:rounded-xl overflow-hidden border-0 sm:border border-border/30 bg-card backdrop-blur-md">
             <ConversationView 
               messages={messages} 
               onFeedback={handleFeedback} 
               onRegenerate={handleRegenerateLastResponse}
-              canRegenerate={!!lastUserMessageDetails.query || !!lastUserMessageDetails.file}
+              canRegenerate={!!(lastUserMessageDetails && (lastUserMessageDetails.query || lastUserMessageDetails.file))}
             />
             <QueryInput
               inputValue={inputValue}
@@ -70,6 +70,8 @@ function EnyiPageContent() {
               voiceOutputEnabled={voiceOutputEnabled}
               toggleVoiceOutput={() => setVoiceOutputEnabled(prev => !prev)}
               onStopGenerating={handleStopGenerating}
+              showThinkingProcessToggle={showThinkingProcess.toggle}
+              isThinkingProcessVisible={showThinkingProcess.visible}
             />
           </Card>
         ) : (
