@@ -12,7 +12,7 @@ import { useAppSettings } from '@/context/app-settings-context';
 import ImageGeneratorDialog from '@/components/image-generator/image-generator-dialog'; 
 
 function EnyiPageContent() {
-  const { currentLanguage, showThinkingProcess } = useAppSettings(); 
+  const { currentLanguage } = useAppSettings(); // Removed showThinkingProcess
   const [isImageGeneratorDialogOpen, setIsImageGeneratorDialogOpen] = React.useState(false);
 
   const {
@@ -31,7 +31,7 @@ function EnyiPageContent() {
     handleFeedback,
     handleRegenerateLastResponse,
     lastUserMessageDetails,
-    abortControllerRef,
+    abortControllerRef, // Retain this for stop generating logic
     handleStopGenerating,
   } = useChatHandler(currentLanguage); 
 
@@ -70,8 +70,7 @@ function EnyiPageContent() {
               voiceOutputEnabled={voiceOutputEnabled}
               toggleVoiceOutput={() => setVoiceOutputEnabled(prev => !prev)}
               onStopGenerating={handleStopGenerating}
-              showThinkingProcessToggle={showThinkingProcess.toggle}
-              isThinkingProcessVisible={showThinkingProcess.visible}
+              // Removed showThinkingProcessToggle and isThinkingProcessVisible props
             />
           </Card>
         ) : (
