@@ -7,19 +7,19 @@ import { useChatHandler } from '@/hooks/use-chat-handler';
 import { Card } from '@/components/ui/card';
 import { useChat } from '@/context/chat-context';
 import { Loader2 } from 'lucide-react';
-import React, { useState } from 'react'; // Added useState
+import React from 'react'; 
 import { useAppSettings } from '@/context/app-settings-context'; 
-import ImageGeneratorDialog from '@/components/image-generator/image-generator-dialog'; // Import the dialog
+import ImageGeneratorDialog from '@/components/image-generator/image-generator-dialog'; 
 
 function EnyiPageContent() {
-  const { currentLanguage } = useAppSettings(); 
-  const [isImageGeneratorDialogOpen, setIsImageGeneratorDialogOpen] = useState(false); // State for dialog
+  const { currentLanguage, showThinkingProcess } = useAppSettings(); 
+  const [isImageGeneratorDialogOpen, setIsImageGeneratorDialogOpen] = React.useState(false);
 
   const {
     messages,
     inputValue,
     setInputValue,
-    isLoading: isSendingMessage,
+    isGeneratingResponse, // Renamed from isLoading for clarity
     isRecording,
     voiceOutputEnabled,
     setVoiceOutputEnabled,
@@ -29,12 +29,16 @@ function EnyiPageContent() {
     handleVoiceInput,
     handleFileChange,
     handleFeedback,
+    handleRegenerateLastResponse,
+    lastUserMessageDetails,
+    abortController,
+    handleStopGenerating,
   } = useChatHandler(currentLanguage); 
 
   const { activeChatId, isLoadingChats } = useChat();
   
   const handleImageGeneratorClick = () => {
-    setIsImageGeneratorDialogOpen(true); // Open the dialog
+    setIsImageGeneratorDialogOpen(true);
   };
 
   return (
@@ -45,21 +49,27 @@ function EnyiPageContent() {
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
           </div>
         ) : activeChatId ? (
-          <Card className="flex flex-col flex-grow shadow-xl rounded-none sm:rounded-xl overflow-hidden border-0 sm:border border-border/30 bg-card backdrop-blur-md h-full">
-            <ConversationView messages={messages} onFeedback={handleFeedback} />
+          <Card className="flex flex-col flex-grow shadow-xl rounded-none sm:rounded-xl overflow-hidden border-0 sm:border border-border/30 bg-card backdrop-blur-md"> {/* Removed h-full */}
+            <ConversationView 
+              messages={messages} 
+              onFeedback={handleFeedback} 
+              onRegenerate={handleRegenerateLastResponse}
+              canRegenerate={!!lastUserMessageDetails.query || !!lastUserMessageDetails.file}
+            />
             <QueryInput
               inputValue={inputValue}
               onInputChange={setInputValue}
               onSendMessage={handleSendMessage}
               onVoiceInput={handleVoiceInput}
               onFileChange={handleFileChange}
-              onImageGeneratorClick={handleImageGeneratorClick} // Pass the handler
+              onImageGeneratorClick={handleImageGeneratorClick}
               isRecording={isRecording}
-              isLoading={isSendingMessage}
+              isGeneratingResponse={isGeneratingResponse}
               currentFile={currentFile}
               clearFile={() => setCurrentFile(null)}
               voiceOutputEnabled={voiceOutputEnabled}
               toggleVoiceOutput={() => setVoiceOutputEnabled(prev => !prev)}
+              onStopGenerating={handleStopGenerating}
             />
           </Card>
         ) : (
