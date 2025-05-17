@@ -4,17 +4,20 @@
 import type { Message } from '@/types';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Bot, User, Download, FileText, AlertCircle, Brain, Info, Loader2, Video, ThumbsUp, ThumbsDown, Edit3 } from 'lucide-react'; 
+import { Bot, User, Download, FileText, AlertCircle, Brain, Info, Loader2, Video, ThumbsUp, ThumbsDown, Edit3, Eye, BrainCircuit } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-import React, { useState } from 'react';
-import { Textarea } from '@/components/ui/textarea'; 
+import React, { useState, useEffect } from 'react';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { marked } from 'marked'; // For rendering markdown
 
 interface MessageBubbleProps {
   message: Message;
   onFeedback: (messageId: string, feedbackType: 'positive' | 'negative', correctionText?: string) => void;
+  onRegenerate: (messageId: string) => void;
+  canRegenerate: boolean;
 }
 
 const formatFileSize = (bytes: number): string => {
@@ -25,15 +28,37 @@ const formatFileSize = (bytes: number): string => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onFeedback }) => {
+const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onFeedback, onRegenerate, canRegenerate }) => {
   const [showDetails, setShowDetails] = useState(false);
+  const [showThinking, setShowThinking] = useState(false);
   const [isCorrecting, setIsCorrecting] = useState(false);
   const [correctionText, setCorrectionText] = useState(message.text || '');
   const { toast } = useToast();
+  const [parsedHtml, setParsedHtml] = useState<string | TrustedHTML>('');
+  const [parsedThinkingHtml, setParsedThinkingHtml] = useState<string | TrustedHTML>('');
 
   const isUser = message.sender === 'user';
   const isImageFile = message.file?.type.startsWith('image/');
   const isVideoFile = message.file?.type.startsWith('video/');
+
+  useEffect(() => {
+    if (message.text) {
+      setParsedHtml(marked.parse(message.text) as string);
+    } else if (message.streamedText) {
+      setParsedHtml(marked.parse(message.streamedText) as string);
+    } else {
+      setParsedHtml('');
+    }
+  }, [message.text, message.streamedText]);
+
+  useEffect(() => {
+    if (message.thinkingProcess) {
+      setParsedThinkingHtml(marked.parse(message.thinkingProcess) as string);
+    } else {
+      setParsedThinkingHtml('');
+    }
+  }, [message.thinkingProcess]);
+
 
   const handleDownload = () => {
     if (message.file) {
@@ -46,25 +71,33 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onFeedback }) =>
     }
   };
 
-  const toggleDetails = () => {
-    if (message.intent || message.requiresContext) {
+  const toggleDetailsOrThoughts = () => {
+    if (message.thinkingProcess) {
+      setShowThinking(!showThinking);
+      // If we show thinking, we might want to hide details, or vice-versa, or allow both
+      // For now, let's allow both to be potentially visible if toggled,
+      // but clicking the eye icon prioritizes thinking process if available.
+      if (message.intent || message.requiresContext) {
+         // setShowDetails(!showThinking ? !showDetails : false); // Example: Hide details if showing thinking
+      }
+    } else if (message.intent || message.requiresContext) {
       setShowDetails(!showDetails);
     }
   };
 
   const handleFeedbackClick = (feedbackType: 'positive' | 'negative') => {
-    if (isCorrecting) setIsCorrecting(false); // Close correction mode if open
+    if (isCorrecting) setIsCorrecting(false);
     onFeedback(message.id, feedbackType);
   };
 
   const handleStartCorrection = () => {
-    setCorrectionText(message.text || '');
+    setCorrectionText(message.text || message.streamedText || '');
     setIsCorrecting(true);
   };
 
   const handleCancelCorrection = () => {
     setIsCorrecting(false);
-    setCorrectionText(message.text || ''); // Reset text
+    setCorrectionText(message.text || message.streamedText || '');
   };
 
   const handleSubmitCorrection = () => {
@@ -84,26 +117,26 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onFeedback }) =>
   return (
     <div
       className={cn(
-        'flex w-full items-end space-x-3 py-2', 
-        isUser ? 'justify-end pl-10 md:pl-20' : 'justify-start pr-10 md:pr-20' 
+        'flex w-full items-end space-x-3 py-2',
+        isUser ? 'justify-end pl-10 md:pl-20' : 'justify-start pr-10 md:pr-20'
       )}
     >
       {!isUser && (
-        <Avatar className="h-10 w-10 border-2 border-border shadow-sm">
-          <AvatarFallback className="bg-muted text-muted-foreground">
-            <Bot size={22} />
+        <Avatar className="h-10 w-10 border-2 border-primary/30 shadow-sm shrink-0">
+          <AvatarFallback className="bg-primary/10 text-primary">
+            <BrainCircuit size={24} strokeWidth={1.5} />
           </AvatarFallback>
         </Avatar>
       )}
       <Card
         className={cn(
-          'max-w-[85%] rounded-2xl shadow-md', 
+          'max-w-[85%] rounded-2xl shadow-md',
           isUser
-            ? 'bg-primary text-primary-foreground rounded-br-lg' 
-            : 'bg-card text-card-foreground rounded-bl-lg border border-border/50' 
+            ? 'bg-primary text-primary-foreground rounded-br-lg'
+            : 'bg-card text-card-foreground rounded-bl-lg border border-border/50'
         )}
       >
-        <CardContent className="p-4 space-y-2.5 text-sm"> {/* Increased padding from p-3.5 to p-4 */}
+        <CardContent className="p-4 space-y-2.5 text-sm">
           {isCorrecting ? (
             <div className="space-y-2">
               <Textarea
@@ -118,16 +151,18 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onFeedback }) =>
                 <Button variant="outline" size="sm" onClick={handleSubmitCorrection} className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">Save Correction</Button>
               </div>
             </div>
-          ) : message.text ? ( // Check if message.text exists before rendering
-            <p className="whitespace-pre-wrap break-words leading-relaxed">{message.text}</p>
-          ) : message.streamedText ? ( // Render streamedText if text is not yet final
-            <p className="whitespace-pre-wrap break-words leading-relaxed">{message.streamedText}</p>
-          ): null }
+          ) : (
+            <>
+              {(message.text || message.streamedText) && (
+                 <div className="prose prose-sm max-w-none text-current" dangerouslySetInnerHTML={{ __html: parsedHtml as string}} />
+              )}
+            </>
+          )}
 
           {message.file && (
             <div className={cn(
               "mt-2.5 p-3 border rounded-lg",
-              isUser ? "border-primary-foreground/20 bg-primary/90" : "border-border bg-secondary/70 text-secondary-foreground" // Slightly more subtle bg for AI file
+              isUser ? "border-primary-foreground/20 bg-primary/90" : "border-border bg-secondary/70 text-secondary-foreground"
             )}>
               {isImageFile ? (
                 <Image
@@ -203,10 +238,10 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onFeedback }) =>
                 isUser ? "text-primary-foreground bg-destructive/80" : "text-destructive-foreground bg-destructive"
               )}>
                 <AlertCircle className="h-4 w-4 mr-2" />
-                <span>An error occurred. Please try again.</span>
+                <span>An error occurred: {message.text || message.streamedText || 'Please try again.'}</span>
             </div>
           )}
-          {message.isLoading && !message.streamedText && ( // Only show "Enyi is thinking..." if not streaming
+          {message.isLoading && !message.streamedText && !message.text && (
             <div className={cn(
                 "flex items-center space-x-2 text-xs mt-1",
                 isUser ? "text-primary-foreground/80" : "text-muted-foreground"
@@ -220,20 +255,20 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onFeedback }) =>
         </CardContent>
         {!message.isLoading && !isUser && (
           <div className="px-3.5 pb-2 pt-1 flex items-center justify-between">
-            <span 
+            <span
               className={cn(
-                  "text-xs", 
+                  "text-xs",
                   isUser ? "text-primary-foreground/70" : "text-muted-foreground",
-                  (message.intent || message.requiresContext) ? "cursor-pointer hover:opacity-80" : ""
+                  (message.thinkingProcess || message.intent || message.requiresContext) ? "cursor-pointer hover:opacity-80" : ""
               )}
-              onClick={toggleDetails}
-              role={(message.intent || message.requiresContext) ? "button" : undefined}
-              tabIndex={(message.intent || message.requiresContext) ? 0 : undefined}
-              onKeyDown={(e) => (message.intent || message.requiresContext) && (e.key === 'Enter' || e.key === ' ') && toggleDetails()}
+              onClick={toggleDetailsOrThoughts}
+              role={(message.thinkingProcess || message.intent || message.requiresContext) ? "button" : undefined}
+              tabIndex={(message.thinkingProcess || message.intent || message.requiresContext) ? 0 : undefined}
+              onKeyDown={(e) => (message.thinkingProcess || message.intent || message.requiresContext) && (e.key === 'Enter' || e.key === ' ') && toggleDetailsOrThoughts()}
             >
               {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              {(message.intent || message.requiresContext) && (
-                 <Info className={cn("inline-block h-3.5 w-3.5 ml-1 align-text-bottom", showDetails ? "text-accent" : "opacity-70")} />
+              {(message.thinkingProcess || message.intent || message.requiresContext) && (
+                 <Eye className={cn("inline-block h-3.5 w-3.5 ml-1 align-text-bottom", (showThinking || showDetails) ? "text-accent" : "opacity-70")} />
               )}
             </span>
             {!isCorrecting && (
@@ -247,25 +282,40 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onFeedback }) =>
                  <Button variant="ghost" size="icon" className={cn("h-6 w-6 rounded-md p-0.5", message.correction ? 'text-blue-500 bg-blue-500/10 hover:bg-blue-500/20' : 'text-muted-foreground hover:text-blue-500 hover:bg-blue-500/10')} onClick={handleStartCorrection} aria-label="Correct response">
                   <Edit3 className="h-3.5 w-3.5" />
                 </Button>
+                {canRegenerate && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onRegenerate(message.id)}
+                    className="h-6 w-6 rounded-md p-0.5 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                    aria-label="Regenerate response"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-refresh-cw"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M21 21v-5h-5"/></svg>
+                  </Button>
+                )}
               </div>
             )}
           </div>
         )}
-        {/* Show timestamp for user messages or AI messages that are fully loaded and not streaming */}
-        {((isUser && !message.isLoading) || (!isUser && !message.isLoading && !message.streamedText)) && (
-           <CardFooter 
+        {/* Show timestamp only for user messages in the footer to avoid double timestamp on AI messages */}
+        {(isUser && !message.isLoading) && (
+           <CardFooter
             className={cn(
-              "px-3.5 pb-2 pt-1 text-xs flex items-center", 
-              isUser ? "text-primary-foreground/70 justify-end" : "text-muted-foreground justify-start" // AI timestamp aligned left if no feedback buttons
+              "px-3.5 pb-2 pt-1 text-xs flex items-center justify-end",
+              "text-primary-foreground/70"
             )}
           >
             <span>{new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-            {/* Optional: Add intent/context toggle for user messages too if needed, or keep it AI-only */}
           </CardFooter>
         )}
 
-
-         {showDetails && (message.intent || message.requiresContext) && !isCorrecting && !isUser && ( // Show details only for AI messages
+         {showThinking && message.thinkingProcess && !isUser && (
+            <CardContent className="px-3.5 pb-3 pt-1 border-t text-xs prose prose-sm max-w-none"
+              style={{borderColor: 'hsl(var(--border))'}}
+              dangerouslySetInnerHTML={{ __html: parsedThinkingHtml as string }}
+            />
+        )}
+         {showDetails && (message.intent || message.requiresContext) && !isUser && (
             <CardContent className="px-3.5 pb-3 pt-1 border-t text-xs"
               style={{borderColor: 'hsl(var(--border))'}}
             >
@@ -275,8 +325,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onFeedback }) =>
         )}
       </Card>
       {isUser && (
-         <Avatar className="h-10 w-10 border-2 border-border shadow-sm">
-          <AvatarFallback className="bg-muted text-muted-foreground"> 
+         <Avatar className="h-10 w-10 border-2 border-border shadow-sm shrink-0">
+          <AvatarFallback className="bg-muted text-muted-foreground">
             <User size={22} />
           </AvatarFallback>
         </Avatar>
@@ -286,3 +336,4 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onFeedback }) =>
 };
 
 export default MessageBubble;
+
