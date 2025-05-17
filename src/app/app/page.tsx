@@ -6,20 +6,18 @@ import QueryInput from '@/components/chat/query-input';
 import { useChatHandler } from '@/hooks/use-chat-handler';
 import { Card } from '@/components/ui/card';
 import { useChat } from '@/context/chat-context';
-import { Loader2, MessageCircle, BrainCircuit } from 'lucide-react';
-import React from 'react'; 
-import { useAppSettings } from '@/context/app-settings-context'; 
-import ImageGeneratorDialog from '@/components/image-generator/image-generator-dialog'; 
+import { Loader2, BrainCircuit } from 'lucide-react';
+import React from 'react';
+import ImageGeneratorDialog from '@/components/image-generator/image-generator-dialog';
 
 function EnyiPageContent() {
-  const { currentLanguage } = useAppSettings();
   const [isImageGeneratorDialogOpen, setIsImageGeneratorDialogOpen] = React.useState(false);
 
   const {
     messages,
     inputValue,
     setInputValue,
-    isGeneratingResponse, 
+    isGeneratingResponse,
     isRecording,
     voiceOutputEnabled,
     setVoiceOutputEnabled,
@@ -33,26 +31,26 @@ function EnyiPageContent() {
     lastUserMessageDetails,
     abortControllerRef,
     handleStopGenerating,
-  } = useChatHandler(); 
+  } = useChatHandler();
 
   const { activeChatId, isLoadingChats } = useChat();
-  
+
   const handleImageGeneratorClick = () => {
     setIsImageGeneratorDialogOpen(true);
   };
 
   return (
     <>
-      <div className="flex-grow flex flex-col overflow-hidden w-full h-full"> {/* Ensured this parent also has h-full */}
+      <div className="flex-grow flex flex-col overflow-hidden w-full h-full">
         {isLoadingChats ? (
           <div className="flex-grow flex items-center justify-center h-full">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
           </div>
         ) : activeChatId ? (
-          <Card className="flex flex-col flex-grow h-full shadow-xl rounded-none sm:rounded-xl overflow-hidden border-0 sm:border border-border/30 bg-card"> {/* Removed backdrop-blur, added h-full */}
-            <ConversationView 
-              messages={messages} 
-              onFeedback={handleFeedback} 
+          <Card className="flex flex-col flex-grow w-full h-full shadow-xl rounded-none sm:rounded-xl overflow-hidden border-0 sm:border border-border/30 bg-card"> {/* Added w-full here */}
+            <ConversationView
+              messages={messages}
+              onFeedback={handleFeedback}
               onRegenerate={handleRegenerateLastResponse}
               canRegenerate={!!(lastUserMessageDetails && (lastUserMessageDetails.query || lastUserMessageDetails.file))}
             />
@@ -90,7 +88,7 @@ function EnyiPageContent() {
           </div>
         )}
       </div>
-      <ImageGeneratorDialog 
+      <ImageGeneratorDialog
         isOpen={isImageGeneratorDialogOpen}
         onOpenChange={setIsImageGeneratorDialogOpen}
       />
@@ -101,4 +99,3 @@ function EnyiPageContent() {
 export default function EnyiChatPage() {
   return <EnyiPageContent />;
 }
-
