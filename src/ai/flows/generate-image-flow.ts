@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI agent that generates images based on a text prompt.
@@ -21,7 +22,7 @@ const GenerateImageOutputSchema = z.object({
     .describe(
       "The generated image, as a data URI that must include a MIME type (e.g., image/png) and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
-  revisedPrompt: z.string().optional().describe('The prompt that was actually used by the model, if revised, or a descriptive text.'),
+  revisedPrompt: z.string().optional().describe('The prompt that was actually used by the model, if revised, or a descriptive text reflecting the generation instructions.'),
 });
 export type GenerateImageOutput = z.infer<typeof GenerateImageOutputSchema>;
 
@@ -36,23 +37,27 @@ const generateImageFlow = ai.defineFlow(
     outputSchema: GenerateImageOutputSchema,
   },
   async (input) => {
+    const descriptivePrompt = input.prompt;
+    // Instruct the model to consider realism based on the user's prompt.
+    const modelInstruction = `Generate a high-quality, detailed image based on the following description. If the description implies realism (e.g., contains words like "photo", "realistic", "actual scene", "photorealistic", "hyperrealistic"), then prioritize photorealism. Description: "${descriptivePrompt}"`;
+
     // IMPORTANT: ONLY the googleai/gemini-2.0-flash-exp model is able to generate images. You MUST use exactly this model to generate images.
     const {media, text} = await ai.generate({
       model: 'googleai/gemini-2.0-flash-exp',
-      prompt: input.prompt,
+      prompt: modelInstruction, // Use the enhanced instruction
       config: {
         responseModalities: ['TEXT', 'IMAGE'], // MUST provide both TEXT and IMAGE
       },
     });
 
     if (!media?.url) {
-      console.error('Image generation failed: No media URL returned from the model. Input prompt:', input.prompt, 'Full response:', {media, text});
+      console.error('Image generation failed: No media URL returned from the model. Input instruction:', modelInstruction, 'Full response:', {media, text});
       throw new Error('Image generation failed: The AI model did not return an image. This might be due to the prompt or model limitations.');
     }
 
     return {
       imageDataUri: media.url,
-      revisedPrompt: text || `Generated image for: ${input.prompt}`, // The model might return a revised prompt or related text
+      revisedPrompt: text || `Generated image for: ${descriptivePrompt}. Instruction to model: ${modelInstruction}`, // The model might return a revised prompt or related text
     };
   }
 );
