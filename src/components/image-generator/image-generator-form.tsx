@@ -9,10 +9,17 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from '@/hooks/use-toast';
 import { generateImage } from '@/ai/flows/generate-image-flow';
 import type { GenerateImageOutput } from '@/ai/flows/generate-image-flow';
-import { Loader2, ImageIcon as ImageIconLucide, AlertTriangle } from 'lucide-react'; // Renamed to avoid conflict
+import { Loader2, ImageIcon as ImageIconLucide, AlertTriangle, Download } from 'lucide-react';
 import Image from 'next/image';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useImageHistory } from '@/context/image-history-context'; // Import image history context
+import { useImageHistory } from '@/context/image-history-context';
+import { sanitizeFilename, downloadDataUri, convertToJpegAndDownload } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function ImageGeneratorForm() {
   const [prompt, setPrompt] = useState('');
@@ -20,7 +27,7 @@ export default function ImageGeneratorForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
-  const { addImageToHistory } = useImageHistory(); // Use image history hook
+  const { addImageToHistory } = useImageHistory();
 
   const handleGenerateImage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,7 +51,6 @@ export default function ImageGeneratorForm() {
         title: 'Image Generated!',
         description: result.revisedPrompt || `Successfully generated image for: ${prompt}`,
       });
-      // Add to image history
       addImageToHistory({
         prompt,
         imageDataUri: result.imageDataUri,
@@ -63,6 +69,30 @@ export default function ImageGeneratorForm() {
       setIsLoading(false);
     }
   };
+
+  const handleDownloadPng = () => {
+    if (generatedImage) {
+      const filename = sanitizeFilename(prompt || generatedImage.revisedPrompt || 'generated_image');
+      downloadDataUri(generatedImage.imageDataUri, `${filename}.png`);
+    }
+  };
+
+  const handleDownloadJpeg = async () => {
+    if (generatedImage) {
+      const filename = sanitizeFilename(prompt || generatedImage.revisedPrompt || 'generated_image');
+      try {
+        await convertToJpegAndDownload(generatedImage.imageDataUri, filename, 0.85);
+      } catch (e) {
+        console.error("Error converting to JPEG:", e);
+        toast({
+          variant: "destructive",
+          title: "Download Error",
+          description: "Could not convert image to JPEG.",
+        });
+      }
+    }
+  };
+
 
   return (
     <div className="w-full">
@@ -137,6 +167,23 @@ export default function ImageGeneratorForm() {
                   <strong>Model's interpretation:</strong> {generatedImage.revisedPrompt}
                 </p>
               )}
+               <div className="mt-4">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline">
+                      <Download className="mr-2 h-4 w-4" /> Download Options
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={handleDownloadPng}>
+                      Download PNG (Original)
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleDownloadJpeg}>
+                      Download JPEG (Compressed)
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </CardFooter>
           )}
       </Card>
