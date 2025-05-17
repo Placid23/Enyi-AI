@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogOut, UserCircle, Settings, LayoutDashboard } from 'lucide-react';
+import { LogOut, Settings, LayoutDashboard, User as UserProfileIcon } from 'lucide-react'; // Changed UserCircle to UserProfileIcon
 import Link from 'next/link';
 
 const UserAvatarDropdown: React.FC = () => {
@@ -24,6 +24,7 @@ const UserAvatarDropdown: React.FC = () => {
 
   const getInitials = (email: string) => {
     const parts = email.split('@')[0];
+    if (!parts) return '??';
     return parts.substring(0, 2).toUpperCase();
   };
 
@@ -32,7 +33,6 @@ const UserAvatarDropdown: React.FC = () => {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
           <Avatar className="h-9 w-9 border-2 border-primary/50">
-            {/* Placeholder for actual avatar image if available */}
             {/* <AvatarImage src={user.avatarUrl} alt={user.email} /> */}
             <AvatarFallback className="bg-primary/20 text-primary font-semibold">
               {getInitials(user.email)}
@@ -50,6 +50,12 @@ const UserAvatarDropdown: React.FC = () => {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href="/profile" className="cursor-pointer">
+            <UserProfileIcon className="mr-2 h-4 w-4" />
+            <span>My Profile</span>
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link href="/dashboard" className="cursor-pointer">
             <LayoutDashboard className="mr-2 h-4 w-4" />
