@@ -11,8 +11,12 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuPortal,
 } from '@/components/ui/dropdown-menu';
-import { LogOut, Settings, LayoutDashboard, User as UserProfileIcon } from 'lucide-react'; // Changed UserCircle to UserProfileIcon
+import { LogOut, Settings, LayoutDashboard, User as UserProfileIcon } from 'lucide-react';
 import Link from 'next/link';
 
 const UserAvatarDropdown: React.FC = () => {
@@ -50,18 +54,28 @@ const UserAvatarDropdown: React.FC = () => {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href="/profile" className="cursor-pointer">
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger className="cursor-pointer">
             <UserProfileIcon className="mr-2 h-4 w-4" />
             <span>My Profile</span>
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/dashboard" className="cursor-pointer">
-            <LayoutDashboard className="mr-2 h-4 w-4" />
-            <span>Dashboard</span>
-          </Link>
-        </DropdownMenuItem>
+          </DropdownMenuSubTrigger>
+          <DropdownMenuPortal>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem asChild>
+                <Link href="/profile" className="cursor-pointer w-full">
+                  <UserProfileIcon className="mr-2 h-4 w-4" />
+                  <span>View Profile Details</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard" className="cursor-pointer w-full">
+                  <LayoutDashboard className="mr-2 h-4 w-4" />
+                  <span>Dashboard</span>
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuPortal>
+        </DropdownMenuSub>
         {/* <DropdownMenuItem disabled>
           <Settings className="mr-2 h-4 w-4" />
           <span>Settings</span>
